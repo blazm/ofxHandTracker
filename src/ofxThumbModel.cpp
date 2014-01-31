@@ -8,9 +8,10 @@ ofxThumbModel::ofxThumbModel(ofPoint _origin)
 	//root.direction = ofPoint(-100, -100, 0);
 	
 	// it looks like this fixes problem with thumb initialization (strange big x angle vals)
-	//root.angleX = 60; //PI/3;
-	//mid.angleX = 60; //PI/3;
-	//top.angleX = 60; //PI/3;
+	// this init also fixes debug build issues with thumb
+	root.angleX = THUMB_MAX_ANGLE_X;
+	mid.angleX = THUMB_MAX_ANGLE_X;
+	top.angleX = THUMB_MAX_ANGLE_X;
 	
 	//thumb special ref angles setup
 	root.refAngleX = -45;
@@ -24,8 +25,6 @@ ofxThumbModel::ofxThumbModel(ofPoint _origin)
 	top.direction = mid.direction;
 
 	fingerTip = top.origin + top.direction;
-	
-	//name = "Thumb";
 
 	root.length = 200;
 	mid.length = 90;
@@ -72,7 +71,8 @@ void ofxThumbModel::keyPressed(int key){
 		top.angleX += 1.4*angleDiff;
 		top.update();
 		*/
-		setAngleX(getAngleX() + angleDiff); // TODO: Debug build has issue here -> thumb rotates infinitely, Release working normally? -_-
+		setAngleX(getAngleX() + angleDiff); // FIXED (by proper init of angleX): Debug build has issue here -> thumb rotates infinitely, Release working normally? -_-
+		
 	}
 	else if(key == '+' && getAngleX() > THUMB_MIN_ANGLE_X) { // inner limit
 		/*

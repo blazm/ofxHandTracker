@@ -17,7 +17,7 @@ More useful info coming soon...
 
 Requirements
 --------------
-ofxOpenNI (also install OpenNI, NITE), SensorKinect drivers:
+ofxOpenNI (also install OpenNI, NITE), SensorKinect drivers: <br/>
 https://github.com/gameoverhack/ofxOpenNI <br/>
 https://github.com/avin2/SensorKinect
 

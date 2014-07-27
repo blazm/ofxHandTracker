@@ -15,6 +15,12 @@ Main issue is still about robustness of hand tracking and its alignment with kin
 
 More useful info coming soon...
 
+Requirements
+--------------
+OpenNI, NITE + SensorKinect drivers:
+https://github.com/gameoverhack/ofxOpenNI
+https://github.com/avin2/SensorKinect
+
 License
 --------------
 The code in this repository is available under the [CC BY-SA 2.5 License] (http://creativecommons.org/licenses/by-sa/2.5/)

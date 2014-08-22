@@ -1,3 +1,0 @@
-ofxOpenCv
-ofxHandTracker
-ofxOpenNI

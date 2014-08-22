@@ -1,4 +1,5 @@
-#include "ofxHandParameters.h"
+#include <iostream>
+#include "ofxFingerParameters.h"
 
 /* DEPRECATED:
 Parameters::Parameters(void)
@@ -100,4 +101,23 @@ ofxFingerParameters& ofxFingerParameters::operator=(const ofxFingerParameters&  
 
 	//return other; 
 	return *this;
+}*/
+
+
+/*ostream & operator<<(ostream & leftOp, ofxFingerParameters & rightOp)
+{
+	// Print the data members of rightOp using leftOp like you would using cout
+   
+	// Return the output stream object so the operator may be cascaded correctly
+	leftOp << "Z: " << rightOp.fz1 << ',' << rightOp.fz2 << ',' << rightOp.fz3 << ',' << rightOp.fz4 << ',' << '\n' << endl;
+	return leftOp;     
+}
+
+ofLog & operator<<(ofLog & leftOp, ofxFingerParameters &rightOp)
+{
+	// Print the data members of rightOp using leftOp like you would using cout
+   
+	// Return the output stream object so the operator may be cascaded correctly
+	leftOp << "Z: " << rightOp.fz1 << ',' << rightOp.fz2 << ',' << rightOp.fz3 << ',' << rightOp.fz4 << ',' << '\n' << endl;
+	return leftOp;     
 }*/

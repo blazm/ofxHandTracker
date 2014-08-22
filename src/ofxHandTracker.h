@@ -6,15 +6,8 @@
 #include "ofxOpenCv.h"
 #include "ofxImageMatcher.h"
 
-#define	TINY_IMG_DIM		150
-#define FTIP_HIST_SIZE		3	// history array size
+#include "FixedParameters.h"
 
-#define	HAND_GRABBED			"hand_grabbed"
-#define HAND_RELEASED			"hand_released"
-#define HAND_PICKED				"hand_picked"
-
-#define MIN_HAND_DEPTH		 500.0
-#define MAX_HAND_DEPTH	    2000.0
 
 // tracker for each hand
 class ofxHandTracker
@@ -28,13 +21,35 @@ class ofxHandTracker
 		void draw();
 
 	// getters 
-		ofxHandModel*			getHandModel();
+		ofxHandModel&	getHandModelRef();
 		vector<ofPoint> getActiveFingerTips();
 		int				getNumFingerTips();
 		
 		//ofEvent<string> handEvent;	// will notify about grabbing, releasing, etc.
 
+		void kMeansClustering(vector<ofPoint> &_cloud, int _iterations, int _numClusters); 
+		float getCircularity(const vector<ofPoint> &_edgePoints, const vector<ofPoint> &_areaPoints); // returns circularity measurement from edge points and area points
+		
 	private:
+		static int			ccw(ofPoint p1, ofPoint p2, ofPoint p3); // returns counter clock wise orientation of three points
+		
+		struct ofPointComparator {
+			ofPoint pivot; // TODO: need to set it up, before sorting
+
+			bool operator() (ofPoint p1, ofPoint p2) {
+				/*int res = ofxHandTracker::ccw(p1, pivot, p2);
+				if (res == 0) // if same angle (collinear points), arrange by x coord (left first)
+					res = p1.x - p2.x;
+				return res;*/
+				return (p1.x < p2.x);
+			}
+		};
+		
+		void				sortEdgePoints(vector<ofPoint> &_edgePoints);
+		void				simplifyDP_openCV ( const vector<ofPoint>& contourIn, vector<ofPoint>& contourOut, float tolerance );
+		void				simplifyByRadDist( const vector<ofPoint>& _contourIn, vector<ofPoint>& _contourOut, float _threshDist);
+		ofPoint&			getPivotPoint(vector<ofPoint> &_edgePoints);
+		
 		//OpenNI Generator references 
 		ofxUserGenerator	*userGen;
 		ofxHandGenerator	*handGen;
@@ -44,7 +59,7 @@ class ofxHandTracker
 		ofFbo				depthFbo;
 
 		//hand model
-		ofxHandModel				h;
+		ofxHandModel		h;
 		int					hIndex;
 
 		//Images
@@ -62,6 +77,8 @@ class ofxHandTracker
 		// -> difference image (between real and model hand)
 		ofxCvGrayscaleImage diffImg;
 
+		//ofImage				handFrontImg, handSideImg, handTopImg;
+
 		ofxCvGrayscaleImage				tinyModelImg;
 		ofxCvGrayscaleImage				tinyHandImg;
 		ofxCvGrayscaleImage				tinyDiffImg;
@@ -78,6 +95,7 @@ class ofxHandTracker
 
 		//BBox 
 		int maxX, minX, maxY, minY, maxZ, minZ;
+		//ofPoint min, max;
 
 		//Orientation & Centroids & PalmCenter
 		ofPoint handCentroid;
@@ -109,13 +127,18 @@ class ofxHandTracker
 		//		then we can check if radius very small, hand is probably facing kinect sideways
 
 		// contour analyzer method
-		void				analyzeContours();
+		void				analyzeContours(vector<ofPoint>	&_activeFingerTips); // populates passed vector with detected fingertips
+		void				drawContours(ofPoint _position = ofPoint::zero());
+
 
 		//helper methods // should be private
+		bool				getTrackedPosition(ofPoint &_trackedPosition);
+		void				getCloudBBox(ofPoint &_min, ofPoint &_max, vector<ofPoint> &_cloud); // gets bounding box (min,max points) from cloud
+
 		float				getHandDepth(float _rawZ, bool _normalized = true, float _min = MIN_HAND_DEPTH, float _max = MAX_HAND_DEPTH);
 		float				angleOfVectors(ofPoint _downVector, ofPoint _rotVector, bool _absolute = true);
 		float				distFactor(float zDist); 
-		void				generateModelProjection(bool _useLegacy = false);
+		void				generateModelProjection();
 		float				getImageMatching(ofxCvGrayscaleImage &realImage, 
 										     ofxCvGrayscaleImage &modelImage,  
 											 ofxCvGrayscaleImage &differenceImage);
@@ -125,9 +148,13 @@ class ofxHandTracker
 		void				fetchHandPointCloud(ofPoint _handTrackedPos);
 		ofPoint				getPalmCenter();
 		ofPoint				getCentroid(vector<ofPoint> &points);
-		void				drawLine(ofImage *img, int x0, int y0, int z0, int x1, int y1, int z1);
+		void				drawPointCloud(ofPoint _position, vector<ofPoint> &_cloud, ofColor _color);
+		//void				drawLine(ofImage *img, int x0, int y0, int z0, int x1, int y1, int z1);
+
+		bool				isFistFormed(int _fingerTipsCounter); // not used helper
 
 		// optimum searching methods (currently very basic)
+		void				setParamsFromFingerTips(int _fingerTipsCounter);
 		void				findParamsOptimum(int _params[], int _size);
 		void				findParamsOptimum(ofxFingerParameters _params[], int _size);
 		void				findParamsOptimum(int _paramsZ[], int _sizeZ, ofxFingerParameters _paramsX[], int _sizeX);

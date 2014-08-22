@@ -1,49 +1,10 @@
 #include "ofxHandModel.h"
 
-#define F1_CLOSED_X	0
-#define F2_CLOSED_X	0
-#define F3_CLOSED_X	0
-#define F4_CLOSED_X	0
-
-#define F1_OPENED_X	25 * PI/180
-#define F2_OPENED_X	0
-#define F3_OPENED_X	-20 * PI/180
-#define F4_OPENED_X	-35 * PI/180
-
 ofxHandModel::ofxHandModel(void)
 {
-	origin = ofPoint(0, 0, 0);
-	//rotation = ofPoint(0, 0, 0);
-	scaling = ofPoint(0.3, 0.3, 0.3);
-	/*
-	t = ofxThumbModel(origin + ofPoint(0, 150, 50));
-	f[0]->setLength(140, 80, 60);
-	//f[0]->root.origin = origin + ofPoint(0, 50, 115);
+	origin = ofPoint();
+	scaling = ofPoint(FIXED_SCALE);
 
-	f1 = ofxFingerModel(ofPoint(0, -80+40-60, 75));
-	f[1]->setLength(85, 75, 65);
-	f[1]->root.angleX = 11;//0.19;
-	//f[1]->minAngleX = F1_CLOSED_X;
-	//f[1]->maxAngleX = F1_OPENED_X;
-
-	f2 = ofxFingerModel(ofPoint(0, -100+40-60, 25));
-	f[2]->setLength(95, 85, 75);
-	f[2]->root.angleX = 0;
-	//f[2]->minAngleX = F2_CLOSED_X;
-	//f[2]->maxAngleX = F2_OPENED_X;
-
-	f3 = ofxFingerModel(ofPoint(0, -90+40-60, -25));
-	f[3]->setLength(90, 80, 70);
-	f[3]->root.angleX = -10; //-0.17;
-	//f[3]->minAngleX = F3_CLOSED_X;
-	//f[3]->maxAngleX = F3_OPENED_X;
-
-	f4 = ofxFingerModel(ofPoint(0, -70+40-60, -75));
-	f[4]->setLength(70, 60, 50);
-	f[4]->root.angleX = -17; //-0.30;
-	//f[4]->minAngleX = F4_CLOSED_X;
-	//f[4]->maxAngleX = F4_OPENED_X;
-	*/
 	f[0] = new ofxThumbModel(origin + ofPoint(0, 150, 50));
 	f[0]->setLength(130, 70, 50);
 
@@ -72,14 +33,13 @@ ofxHandModel::ofxHandModel(void)
 	ofFbo::Settings s = ofFbo::Settings();  
 	s.width = IMG_DIM;  
 	s.height = IMG_DIM;  
-	s.useDepth = true;  
-	s.useStencil = true;  
-	s.depthStencilAsTexture = true;
+	//s.useDepth = true;  
+	//s.useStencil = true;  
+	//s.depthStencilAsTexture = true;
 	meshFbo.allocate(s);  
 	meshFbo.setUseTexture(true);
 
 	//meshFbo.allocate(IMG_DIM, IMG_DIM);
-
 	dilateFbo.allocate(IMG_DIM, IMG_DIM);
 
 	cout << "FBO objects supported: " << meshFbo.checkGLSupport() << endl;
@@ -103,15 +63,9 @@ ofxHandModel::~ofxHandModel(void)
 
 void ofxHandModel::update()
 {
-	//cout << "ofxHandModel origin X: " << origin.x << " Y: " << origin.y << " Z: " << origin.z << endl;
-	// update all fingers
-	/*f[1]->update();
-	f[2]->update();
-	f[3]->update();
-	f[4]->update();
-	f[0]->update();*/
-	interpolationTimer.update();
+	//interpolationTimer.update();
 
+	// update all fingers
 	for(int i=0; i<NUM_FINGERS; i++) {
 		f[i]->update();
 	}
@@ -121,6 +75,11 @@ void ofxHandModel::update()
 	modelMesh.clear();
 	palmMesh.clear();
 
+	ofPoint s = scaling; // save scaling
+	scaling.set(FIXED_SCALE);
+
+	ofColor colors[] = {ofColor::black, ofColor::red, ofColor::green, ofColor::blue, ofColor::magenta, ofColor::cyan, ofColor::yellow};
+	int numColors = 1; // if numColors == 1, model all white
 	for(int i=0; i<NUM_FINGERS; i++) {
 		
 		modelMesh.addVertex(f[i]->root.origin);
@@ -131,15 +90,13 @@ void ofxHandModel::update()
 		modelMesh.addVertex(f[i]->fingerTip);
 
 		// for proper depth coloring
-		modelMesh.addColor(getPointColor(f[i]->root.origin));
-		modelMesh.addColor(getPointColor(f[i]->mid.origin));
-		modelMesh.addColor(getPointColor(f[i]->mid.origin));
-		modelMesh.addColor(getPointColor(f[i]->top.origin));
-		modelMesh.addColor(getPointColor(f[i]->top.origin));
-		modelMesh.addColor(getPointColor(f[i]->fingerTip));
+		modelMesh.addColor(getPointColor(f[i]->root.origin) - colors[i%numColors]);
+		modelMesh.addColor(getPointColor(f[i]->mid.origin) - colors[i%numColors]);
+		modelMesh.addColor(getPointColor(f[i]->mid.origin) - colors[i%numColors]);
+		modelMesh.addColor(getPointColor(f[i]->top.origin) - colors[i%numColors]);
+		modelMesh.addColor(getPointColor(f[i]->top.origin) - colors[i%numColors]);
+		modelMesh.addColor(getPointColor(f[i]->fingerTip) - colors[i%numColors]);
 	}
-
-
 
 	// setup vertices & depth colors for faces of palm (TRIANGLE_FAN style)
 	//--------------------------------------------------------------------------------------------------
@@ -160,26 +117,28 @@ void ofxHandModel::update()
 	palmMesh.addVertex(f0m);
 	palmMesh.addVertex(f1r);
 
-	palmMesh.addColor(getPointColor(f0r));
-	palmMesh.addColor(getPointColor(f0m));
-	palmMesh.addColor(getPointColor(f1r));
+	palmMesh.addColor(getPointColor(f0r) /*- ofColor::yellow*/);
+	palmMesh.addColor(getPointColor(f0m) /*- ofColor::yellow*/);
+	palmMesh.addColor(getPointColor(f1r) /*- ofColor::yellow*/);
 
 	palmMesh.addVertex(f2r);
 	palmMesh.addVertex(f3r);
 	palmMesh.addVertex(f4r);
 
-	palmMesh.addColor(getPointColor(f2r));
-	palmMesh.addColor(getPointColor(f3r));
-	palmMesh.addColor(getPointColor(f4r));
+	palmMesh.addColor(getPointColor(f2r) /*- ofColor::yellow*/);
+	palmMesh.addColor(getPointColor(f3r) /*- ofColor::yellow*/);
+	palmMesh.addColor(getPointColor(f4r) /*- ofColor::yellow*/);
 
 	palmMesh.addVertex(f4c);
 	palmMesh.addVertex(f3c);
 	palmMesh.addVertex(f0c);
 
-	palmMesh.addColor(getPointColor(f4c));
-	palmMesh.addColor(getPointColor(f3c));
-	palmMesh.addColor(getPointColor(f0c));
+	palmMesh.addColor(getPointColor(f4c) /*- ofColor::yellow*/);
+	palmMesh.addColor(getPointColor(f3c) /*- ofColor::yellow*/);
+	palmMesh.addColor(getPointColor(f0c) /*- ofColor::yellow*/);
 	//--------------------------------------------------------------------------------------------------
+
+	scaling.set(s); // restore scaling
 }
 
 ofFloatColor ofxHandModel::getPointColor(ofPoint p) {
@@ -192,6 +151,9 @@ ofFloatColor ofxHandModel::getPointColor(ofPoint p) {
 void ofxHandModel::drawMesh() {
 	glMatrixMode(GL_MODELVIEW);
 	
+	//ofEnableDepthTest(); // or
+	glEnable(GL_DEPTH_TEST);
+
 	glPushMatrix();
 
 	//glTranslatef(origin.x, origin.y, origin.z);
@@ -213,6 +175,8 @@ void ofxHandModel::drawMesh() {
 	modelMesh.draw();
 
 	glPopMatrix();
+
+	glDisable(GL_DEPTH_TEST);
 }
 
 void ofxHandModel::draw() 
@@ -303,6 +267,7 @@ void ofxHandModel::drawProjection()
 {
 	glMatrixMode(GL_MODELVIEW);	
 	glPushMatrix();
+
 	glTranslatef(IMG_DIM/2, IMG_DIM/2, 0);
 	
 	//Extract the rotation from the current rotation
@@ -390,12 +355,16 @@ void ofxHandModel::drawFingerProjection(ofxFingerModel f) {
 
 ofImage ofxHandModel::getProjection(ofPoint _palmCenter, int _kernelSize) {
 
+	ofPoint s = scaling;
+	scaling = ofPoint(FIXED_SCALE);
 
 	meshFbo.begin();
 	ofClear(0,0,0);
 	//ofRect(0,0,IMG_DIM, IMG_DIM);
 	drawMesh();
 	meshFbo.end();
+
+	scaling = s;
 
 	//meshFbo.draw(IMG_DIM, 0, IMG_DIM, IMG_DIM); // this is not drawn?
 	/*ofPixels projPixels;
@@ -416,7 +385,7 @@ ofImage ofxHandModel::getProjection(ofPoint _palmCenter, int _kernelSize) {
 			dilateShader.setUniformTexture("sampler0", meshFbo.getTextureReference(), 0);
 			dilateShader.setUniform1i("kernel_size", _kernelSize);
 			meshFbo.draw(_palmCenter.x - IMG_DIM/2, _palmCenter.y - IMG_DIM/2,IMG_DIM, IMG_DIM);
-			ofRect(0,0,0,IMG_DIM, IMG_DIM);
+			//ofRect(0,0,0,IMG_DIM, IMG_DIM); // not required in oF.8.1
 		dilateShader.end();
 	dilateFbo.end();
 	//meshFbo.end();
@@ -435,6 +404,45 @@ ofImage ofxHandModel::getProjection(ofPoint _palmCenter, int _kernelSize) {
 	//projImg.setAnchorPercent(_palmCenter.x/IMG_DIM, _palmCenter.y/IMG_DIM);
 
 	return projImg;
+}
+
+void ofxHandModel::drawFboProjection(ofPoint _position, ofPoint _palmCenter, int _kernelSize) {
+
+	ofPoint s = scaling;
+	scaling = ofPoint(FIXED_SCALE);
+	
+	meshFbo.begin();
+	ofClear(0,0,0);
+	//ofRect(0,0,IMG_DIM, IMG_DIM);
+	drawMesh();
+	meshFbo.end();
+
+	
+	scaling = s;
+
+	//meshFbo.draw(IMG_DIM, 0, IMG_DIM, IMG_DIM); // this is not drawn?
+	/*ofPixels projPixels;
+	meshFbo.readToPixels(projPixels);
+
+	ofImage projImg;
+	projImg.setFromPixels(projPixels);
+	*/
+
+	//ofFbo resultFbo;
+	//resultFbo.allocate(IMG_DIM, IMG_DIM);
+	
+	//meshFbo.begin();
+	dilateFbo.begin();
+		ofClear(0,0,0);
+		dilateShader.begin();
+			dilateShader.setUniformTexture("sampler0", meshFbo.getTextureReference(), 0);
+			dilateShader.setUniform1i("kernel_size", _kernelSize);
+			meshFbo.draw(_palmCenter.x - IMG_DIM/2, _palmCenter.y - IMG_DIM/2,IMG_DIM, IMG_DIM);
+			//ofRect(0,0,0,IMG_DIM, IMG_DIM); // not required in oF.8.1
+		dilateShader.end();
+	dilateFbo.end();
+	//meshFbo.end();
+	dilateFbo.draw(_position);
 }
 
 void ofxHandModel::keyPressed(int key)
@@ -547,42 +555,7 @@ vector<ofPoint> ofxHandModel::getFingerWorldCoord(int index)
 	joints.push_back(m.preMult(f[index]->mid.origin));
 	joints.push_back(m.preMult(f[index]->top.origin));
 	joints.push_back(m.preMult(f[index]->fingerTip));
-	/*
-	switch(index){
-		case 1:
-			joints.push_back(m.preMult(f[1]->root.origin));
-			joints.push_back(m.preMult(f[1]->mid.origin));
-			joints.push_back(m.preMult(f[1]->top.origin));
-			joints.push_back(m.preMult(f[1]->fingerTip));
-			break;
-		case 2:
-			joints.push_back(m.preMult(f[2]->root.origin));
-			joints.push_back(m.preMult(f[2]->mid.origin));
-			joints.push_back(m.preMult(f[2]->top.origin));
-			joints.push_back(m.preMult(f[2]->fingerTip));
-			break;
-		case 3:
-			joints.push_back(m.preMult(f[3]->root.origin));
-			joints.push_back(m.preMult(f[3]->mid.origin));
-			joints.push_back(m.preMult(f[3]->top.origin));
-			joints.push_back(m.preMult(f[3]->fingerTip));
-			break;
-		case 4:
-			joints.push_back(m.preMult(f[4]->root.origin));
-			joints.push_back(m.preMult(f[4]->mid.origin));
-			joints.push_back(m.preMult(f[4]->top.origin));
-			joints.push_back(m.preMult(f[4]->fingerTip));
-			break;
-		case 5:
-			joints.push_back(m.preMult(f[0]->root.origin));
-			joints.push_back(m.preMult(f[0]->mid.origin));
-			joints.push_back(m.preMult(f[0]->top.origin));
-			joints.push_back(m.preMult(f[0]->fingerTip));
-			break;
-		default:
-			break;
-	}
-	*/
+
 	return joints;
 }
 
@@ -623,63 +596,6 @@ vector<ofPoint> ofxHandModel::getFillWorldCoord()
 
 	return fillPoints;
 }
-
-/* DEPRECATED:
-void ofxHandModel::restoreFrom(DiscreteLocalParameters _discParams) {
-	
-	if(_discParams.states[1]) {
-		f[1]->setAngleZ(0);
-	}
-	else {
-		f[1]->setAngleZ(90);
-	}
-	
-	if(_discParams.states[2]) {
-		f[2]->setAngleZ(0);
-	}
-	else {
-		f[2]->setAngleZ(90);
-	}
-
-	if(_discParams.states[3]) {
-		f[3]->setAngleZ(0);
-	}
-	else {
-		f[3]->setAngleZ(90);
-	}
-
-	if(_discParams.states[4]) {
-		f[4]->setAngleZ(0);
-	}
-	else {
-		f[4]->setAngleZ(90);
-	}
-	
-	if(_discParams.states[0]) {
-		f[0]->setAngleX(30);
-		f[0]->setAngleZ(0);
-	}
-	else {
-		f[0]->setAngleX(-10);
-		f[0]->setAngleZ(20);
-	}
-	
-	
-	/*
-	f[1]->setAngleZ((-90*PI)/180);
-	f[2]->setAngleZ((-90*PI)/180);
-	f[3]->setAngleZ((-90*PI)/180);
-	f[4]->setAngleZ((-90*PI)/180);
-	*
-	
-	//f[1]->setAngleZ(-10);
-	//f[2]->setAngleZ(-20);
-	//f[3]->setAngleZ(-30);
-	//f[4]->setAngleZ(-40);
-	
-	update();
-}
-*/
 
 void ofxHandModel::restoreFrom(ofxFingerParameters _localParams, bool _includeAngleX) {
 	/* // to be included (setting left, right swing angles)
@@ -730,7 +646,7 @@ ofxFingerParameters	ofxHandModel::saveFingerParameters() {
 	p.fx3 = f[3]->root.angleX;
 	p.fx4 = f[4]->root.angleX;
 
-	p.params = 0;
+//	p.params = 0;
 /*
 // front and back thumb swing
 #define THUMB_MIN_ANGLE_Z		   0
@@ -751,7 +667,7 @@ ofxFingerParameters	ofxHandModel::saveFingerParameters() {
 		p.params += 8;
 	if(p.fz4 < 45)
 		p.params += 16;
-
+	
 	return p;
 }
 /*
@@ -760,27 +676,104 @@ GlobalParameters ofxHandModel::saveGlobalParameters() {
 	return p;
 }*/
 
+void ofxHandModel::close(float _factor, short _mask) {
+	ofClamp(_factor, 0, 1);
+	ofxFingerParameters params;
+	if ((_mask >> 1) & 1) params.fz1 = _factor * (FINGER_MAX_ANGLE_Z - FINGER_MIN_ANGLE_Z) + FINGER_MIN_ANGLE_Z;
+	if ((_mask >> 2) & 1) params.fz2 = _factor * (FINGER_MAX_ANGLE_Z - FINGER_MIN_ANGLE_Z) + FINGER_MIN_ANGLE_Z;
+	if ((_mask >> 3) & 1) params.fz3 = _factor * (FINGER_MAX_ANGLE_Z - FINGER_MIN_ANGLE_Z) + FINGER_MIN_ANGLE_Z;
+	if ((_mask >> 4) & 1) params.fz4 = _factor * (FINGER_MAX_ANGLE_Z - FINGER_MIN_ANGLE_Z) + FINGER_MIN_ANGLE_Z;
+	if ((_mask >> 0) & 1) {
+		params.tz = _factor * (THUMB_MAX_ANGLE_Z - THUMB_MIN_ANGLE_Z) + THUMB_MIN_ANGLE_Z;
+		params.tx = _factor * (THUMB_MIN_ANGLE_X - THUMB_MAX_ANGLE_X) + THUMB_MAX_ANGLE_X;
+	}
+
+	interpolate(params, _mask);
+}
+
+void ofxHandModel::open(float _factor, short _mask) {
+	ofClamp(_factor, 0, 1);
+	close(1 - _factor, _mask);
+}
+
 // TODO: not functional at the moment 
 // (should be realized similarly in a way that is 
 // implemented in BezierConnection class - so no timers are used)
-void ofxHandModel::interpolate(ofxFingerParameters _to) {
+void ofxHandModel::interpolate(ofxFingerParameters _to, short _mask) {
 	ofxFingerParameters prevParams = saveFingerParameters();
 	ofxFingerParameters newParams;
 	desiredParams = _to;
 
 	// TODO: in parameters include operator +, - to simplify that kind of operations
-	desiredParams = prevParams + ((desiredParams - prevParams)*0.1f);
+	//desiredParams = prevParams + ((desiredParams - prevParams)*0.1f);
 
-	/*
-	newParams.fz1 = prevParams.fz1 + ((desiredParams.fz1 - prevParams.fz1)*0.1f);
-	newParams.fz2 = prevParams.fz2 + ((desiredParams.fz2 - prevParams.fz2)*0.1f);
-	newParams.fz3 = prevParams.fz3 + ((desiredParams.fz3 - prevParams.fz3)*0.1f);
-	newParams.fz4 = prevParams.fz4 + ((desiredParams.fz4 - prevParams.fz4)*0.1f);
-	newParams.tz = prevParams.tz + ((desiredParams.tz - prevParams.tz)*0.1f);
-	newParams.tx = prevParams.tx + ((desiredParams.tx - prevParams.tx)*0.1f);
-	*/
+	// operators +,-,* wont work properly (yet), this works:
+	if ((_mask >> 1) & 1)	desiredParams.fz1 = prevParams.fz1 + ((desiredParams.fz1 - prevParams.fz1)*0.1f);
+	else					desiredParams.fz1 = prevParams.fz1;
 
+
+	if ((_mask >> 2) & 1)	desiredParams.fz2 = prevParams.fz2 + ((desiredParams.fz2 - prevParams.fz2)*0.1f);
+	else					desiredParams.fz2 = prevParams.fz2;
+
+
+	if ((_mask >> 3) & 1)	desiredParams.fz3 = prevParams.fz3 + ((desiredParams.fz3 - prevParams.fz3)*0.1f);
+	else					desiredParams.fz3 = prevParams.fz3;
+
+
+	if ((_mask >> 4) & 1)   desiredParams.fz4 = prevParams.fz4 + ((desiredParams.fz4 - prevParams.fz4)*0.1f);
+	else					desiredParams.fz4 = prevParams.fz4;
+
+	
+	if ((_mask >> 0) & 1) {
+		desiredParams.tz = prevParams.tz + ((desiredParams.tz - prevParams.tz)*0.1f);
+		desiredParams.tx = prevParams.tx + ((desiredParams.tx - prevParams.tx)*0.1f);
+	}
+	else {
+		desiredParams.tz = prevParams.tz;
+		desiredParams.tx = prevParams.tx;
+	}
+	
 	restoreFrom(desiredParams);
 
 	//rollAngle = prevRollAngle + ((rollAngle - prevRollAngle)*0.5f); // smoothing
+}
+
+void ofxHandModel::setScale(float _factor) {
+	scaling.set(_factor);
+}
+
+void ofxHandModel::setScale(ofPoint _scale) {
+	scaling.set(_scale);
+}
+
+ofPoint& ofxHandModel::getScaleRef() {
+	return scaling;
+}
+
+ofPoint ofxHandModel::getScale() {
+	return scaling;
+}
+
+void ofxHandModel::setOrigin(ofPoint _origin) {
+	origin.set(_origin);
+}
+
+ofPoint& ofxHandModel::getOriginRef() {
+	return origin;
+}
+
+ofPoint ofxHandModel::getOrigin() {
+	return origin;
+}
+
+void ofxHandModel::setRotation(ofQuaternion _rotation) {
+	curRot.set(_rotation);
+}
+
+ofQuaternion& ofxHandModel::getRotationRef() {
+	return curRot;
+}
+
+ofQuaternion ofxHandModel::getRotation() {
+	return curRot;
 }

@@ -2,7 +2,7 @@
 
 #include "ofMain.h"
 #include "ofxFingerSegment.h"
-#include "ofxHandParameters.h"
+#include "ofxFingerParameters.h"
 
 class ofxFingerModel
 {

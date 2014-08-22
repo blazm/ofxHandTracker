@@ -72,7 +72,7 @@ void ofxFingerModel::update(){
 void ofxFingerModel::draw()
 {
 	ofSetColor(ofColor::cyan);
-	ofSphere(fingerTip, 15);
+	ofSphere(fingerTip, 10);
 	top.draw();
 	mid.draw();
 	root.draw();

@@ -6,22 +6,25 @@
 //#define _Hand_Tracker_Hand_Model_Parameters
 
 #include "ofMain.h"
+#include "FixedParameters.h"
 
-// left and right thumb swing
-#define THUMB_MIN_ANGLE_X		 -40//-30 -> less opened
-#define THUMB_MAX_ANGLE_X	      10//0 
+//namespace ofxHandTracker { // TODO: add structured namespaces, remove macro defines
+	// left and right thumb swing
+	#define THUMB_MIN_ANGLE_X		 -30//-30 -> less opened
+	#define THUMB_MAX_ANGLE_X	      10//0 
 
-// front and back thumb swing
-#define THUMB_MIN_ANGLE_Z		   0
-#define THUMB_MAX_ANGLE_Z		  20
+	// front and back thumb swing
+	#define THUMB_MIN_ANGLE_Z		   0
+	#define THUMB_MAX_ANGLE_Z		  20
 
-// define other fingers front and back swing limits (actual angle of first segment, value is then propagated to others)
-#define FINGER_MIN_ANGLE_Z	 0
-#define FINGER_MAX_ANGLE_Z	90
+	// define other fingers front and back swing limits (actual angle of first segment, value is then propagated to others)
+	#define FINGER_MIN_ANGLE_Z	 0
+	#define FINGER_MAX_ANGLE_Z	90
 
-// also need to define non-thumb finer x angles -> but they are different for each finger
-#define FINGER_MIN_ANGLE_X -10
-#define FINGER_MAX_ANGLE_X	10
+	// also need to define non-thumb finer x angles -> but they are different for each finger
+	#define FINGER_MIN_ANGLE_X -10
+	#define FINGER_MAX_ANGLE_X	10
+//}
 
 // used to store local finger parameters
 class ofxFingerParameters
@@ -168,15 +171,30 @@ class ofxFingerParameters
 			}*/
 		}
 
+		/*ostream& operator<<(ostream& os)
+		{
+			os << "Z: " << fz1 << ',' << fz2 << ',' << fz3 << ',' << fz4 << ',' << '\n' << endl;
+			return os;
+		} 
+		
+		ofLog& operator<<(ofLog& os)
+		{
+			os << "Z: " << fz1 << ',' << fz2 << ',' << fz3 << ',' << fz4 << ',' << '\n' << endl;
+			return os;
+		} */
+
 		ofxFingerParameters operator+(const ofxFingerParameters& other);
 		ofxFingerParameters operator-(const ofxFingerParameters& other);
 		ofxFingerParameters operator*(const float factor);
-        //ofxFingerParameters& operator=(const ofxFingerParameters& other);
+       // ofxFingerParameters& operator=(const ofxFingerParameters& other);
 
 		float fz1, fz2, fz3, fz4; 
 		float fx1, fx2, fx3, fx4; // left, right finger rotation params - UNUSED
 		float tx, tz;
 		//float hx, hy, hz;
+
+		float fz[NUM_FINGERS];
+		float fx[NUM_FINGERS];
 
 		// merged from DiscreteLocalParams;
 		// TODO: later better to organize angles (fx*, fz*) as

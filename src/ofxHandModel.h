@@ -3,12 +3,12 @@
 #include "ofMain.h"
 #include "ofxFingerModel.h"
 #include "ofxThumbModel.h"
-#include "ofxHandParameters.h"
+#include "ofxFingerParameters.h"
 
 #include "ofxUtilityTimer.h"
+#include "FixedParameters.h"
 
-#define IMG_DIM			150.0
-#define	NUM_FINGERS	5
+//namespace ofxHandTracker {
 
 class ofxHandModel
 {
@@ -29,48 +29,57 @@ class ofxHandModel
 		ofPoint			getWorldCoord(ofPoint localPoint, ofPoint translateOrigin);
 
 		void			drawProjection(); 
-		ofImage			getProjection(ofPoint _palmCenter = ofPoint(IMG_DIM/2, IMG_DIM/2, 0), int _kernelSize = 4);
+		void			drawFboProjection(ofPoint _position, ofPoint _palmCenter = ofPoint(IMG_DIM/2, IMG_DIM/2, 0), int _kernelSize = FIXED_KERNEL);
+		ofImage			getProjection(ofPoint _palmCenter = ofPoint(IMG_DIM/2, IMG_DIM/2, 0), int _kernelSize = FIXED_KERNEL);
 		void			drawFingerProjection(ofxFingerModel f); //helper only
 
 		void			restoreFrom(ofxFingerParameters _localParams, bool _includeAngleX = false);
 
-		ofxFingerParameters	saveFingerParameters();
+		void			setScale(float _factor);
+		void			setScale(ofPoint _scale);
+		ofPoint&		getScaleRef();
+		ofPoint			getScale();
 
+		void			setOrigin(ofPoint _origin);
+		ofPoint&		getOriginRef();
+		ofPoint			getOrigin();
+
+		void			setRotation(ofQuaternion _rotation);
+		ofQuaternion&	getRotationRef();
+		ofQuaternion	getRotation();
+
+		ofxFingerParameters	saveFingerParameters();
 		//ofxPalmParameters savePalmParameters();
 
-		ofPoint			origin;
-		ofPoint			scaling;
+		// _mask -> masks fingers by bits (1- enabled, 0 - disabled)
+		void			interpolate(ofxFingerParameters _to, short _mask = 31); // interpolates hand params, _mask: 1 - 31 (enables fingers bitwise)
+		void			open(float _factor = 1.0, short _mask = 31); // opens hand, _factor: 0 - 1, _mask: 1 - 31 (enables fingers bitwise)
+		void			close(float _factor = 1.0, short _mask = 31); // closes hand, _factor: 0 - 1, _mask: 1 - 31 (enables fingers bitwise)
 
-		/*
-		// fingers
-		ofxFingerModel			f1;
-		ofxFingerModel			f2;
-		ofxFingerModel			f3;
-		ofxFingerModel			f4;
 
-		// TODO: add thumb
-		Thumb			t; // will be f0
-		*/
-		ofxFingerModel*			f[NUM_FINGERS]; //
+	private:
+		ofxFingerModel*			f[NUM_FINGERS]; 
 
 		//ofPoint		  rotation;
-		// Quaternion rotation from example
+		// TODO: setters/getters (also fix references in other files)
+		ofPoint			origin;
+		ofPoint			scaling; // TODO: maybe use 2 scales (display, processing)
+
 		//current state of the rotation  
 		ofQuaternion	curRot;  
+
+
 		//a place to store the mouse position so we can measure incremental change  
 		ofVec2f			lastMouse;
 		//slows down the rotation 1 = 1 degree per pixel
 		float			dampen;
 
 		// interpolation methods & variables
-		void			interpolate(ofxFingerParameters _from, ofxFingerParameters _to);
-		void			interpolate(ofxFingerParameters _to);
+		//void			interpolate(ofxFingerParameters _from, ofxFingerParameters _to);
 		ofxFingerParameters desiredParams;
 
-		ofxUtilityTimer	interpolationTimer;
-		bool			isInterpolating;
-
-
+		//ofxUtilityTimer	interpolationTimer; // not used
+		//bool			isInterpolating;// not used
 
 		// mesh & fbo & shaders (experimental)
 		//off screen drawing fbo - for better model projection generation
@@ -79,7 +88,7 @@ class ofxHandModel
 
 		ofMesh			modelMesh; // used for drawing finger segment as lines
 		ofMesh			palmMesh;  // used for drawing palm region as triangle strip
-		ofVbo			modelVbo; // not used right now
+		//ofVbo			modelVbo; // not used right now
 
 		ofShader		dilateShader;
 
@@ -91,3 +100,4 @@ class ofxHandModel
 		ofFloatColor	getPointColor(ofPoint p);
 };
 
+//}

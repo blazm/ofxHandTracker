@@ -8,6 +8,13 @@
 
 #include "FixedParameters.h"
 
+/* // namespace usage example
+namespace ofxHT {
+	class Tracker;
+}
+
+class ofxHT::Tracker {
+};*/
 
 // tracker for each hand
 class ofxHandTracker
@@ -27,7 +34,7 @@ class ofxHandTracker
 		
 		//ofEvent<string> handEvent;	// will notify about grabbing, releasing, etc.
 
-		void kMeansClustering(vector<ofPoint> &_cloud, int _iterations, int _numClusters); 
+		void kMeansClustering(vector<ofPoint> &_cloud, int _iterations, int _numClusters); // super simple k means clustering -> problem is seed selection
 		float getCircularity(const vector<ofPoint> &_edgePoints, const vector<ofPoint> &_areaPoints); // returns circularity measurement from edge points and area points
 		
 	private:
@@ -126,12 +133,12 @@ class ofxHandTracker
 		//TODO: we can check radius changes over time -> we will need maxRad & minRad vars, 
 		//		then we can check if radius very small, hand is probably facing kinect sideways
 
-		// contour analyzer method
+		// contour analysis methods
 		void				analyzeContours(vector<ofPoint>	&_activeFingerTips); // populates passed vector with detected fingertips
 		void				drawContours(ofPoint _position = ofPoint::zero());
 
 
-		//helper methods // should be private
+		//helper methods // some of them should be private
 		bool				getTrackedPosition(ofPoint &_trackedPosition);
 		void				getCloudBBox(ofPoint &_min, ofPoint &_max, vector<ofPoint> &_cloud); // gets bounding box (min,max points) from cloud
 
@@ -146,7 +153,7 @@ class ofxHandTracker
 											 ofImage &diffImage);
 		float				getImageMatching(ofxCvGrayscaleImage &differenceImage);
 		void				fetchHandPointCloud(ofPoint _handTrackedPos);
-		ofPoint				getPalmCenter();
+		void				getPalmCenterAndRadius(ofPoint &_palmCenter, float &_palmRadius);
 		ofPoint				getCentroid(vector<ofPoint> &points);
 		void				drawPointCloud(ofPoint _position, vector<ofPoint> &_cloud, ofColor _color);
 		//void				drawLine(ofImage *img, int x0, int y0, int z0, int x1, int y1, int z1);

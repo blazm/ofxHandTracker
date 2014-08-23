@@ -6,21 +6,21 @@
 #define IMG_DIM	500.0 
 #define FIXED_SCALE 0.9
 #define FIXED_KERNEL 10
-*/
+*//*
 static const float IMG_DIM = 250.0;
 static const float FIXED_SCALE = 0.45;
 static const int FIXED_KERNEL = 6;
-
+*/
 /*
 static const float IMG_DIM = 64.0;
 static const float FIXED_SCALE = 0.16;
 static const int FIXED_KERNEL = 2;
 */
-/*
+
 #define IMG_DIM	150.0 
 #define FIXED_SCALE 0.3 
 #define FIXED_KERNEL 4  
-*//*
+/*
 #define IMG_DIM	100.0 
 #define FIXED_SCALE 0.2 
 #define FIXED_KERNEL 2 

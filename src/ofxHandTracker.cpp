@@ -347,7 +347,7 @@ float ofxHandTracker::distFactor(float zDist) {
 	return (zz) * 1/30;
 }
 
-ofPoint ofxHandTracker::getPalmCenter() {
+void ofxHandTracker::getPalmCenterAndRadius(ofPoint &_palmCenter, float &_palmRadius) {
 	/* PALM CENTER CALCULATION - from: http://blog.candescent.ch/2011/04/center-of-palm-hand-tracking.html
 	1. foreach x-th candidate 
 	2. calculate the smallest distance to any point in the contour
@@ -387,8 +387,8 @@ ofPoint ofxHandTracker::getPalmCenter() {
 	//ofCircle(minMaxCandidate, minMaxDistance);
 	//ofFill();
 
-	palmRadius = minMaxDistance;
-	return minMaxCandidate;
+	_palmRadius = minMaxDistance;
+	_palmCenter.set(minMaxCandidate);
 }
 
 void ofxHandTracker::getCloudBBox(ofPoint &_min, ofPoint &_max, vector<ofPoint> &_cloud) {
@@ -517,7 +517,7 @@ void ofxHandTracker::update() {
 		}
 
 		ofPoint prevPalmCenter = palmCenter;
-		palmCenter = getPalmCenter();
+		getPalmCenterAndRadius(palmCenter, palmRadius);
 
 		if(palmCenter.distance(ofPoint::zero()) < 10) // some sort of safety, to prevent ofPoint::zero() -> TODO: generalize or replace with better solution
 			palmCenter = prevPalmCenter;
@@ -737,8 +737,8 @@ void ofxHandTracker::analyzeContours(vector<ofPoint> &_activeFingerTips) {
 	realImgCV_previous.setFromPixels(realImgCV.getPixelsRef());
 
 	realImgCV.setFromPixels(realImg.getPixelsRef());
-//	realImgCV.dilate();
-//	realImgCV.erode();
+	realImgCV.dilate(); // if image dimensions are larger, image must be dilated before contour processing
+	realImgCV.erode();
 
 	realImgCV_previous.absDiff(realImgCV);
 
@@ -766,9 +766,11 @@ void ofxHandTracker::analyzeContours(vector<ofPoint> &_activeFingerTips) {
 		float minAngle = 360;
 		int minIndex = -1;
 
+		float threshAngle = 60;
+
 		fingerTipsCounter = 0;
 
-		// TODO: refactor this algorithm to new functiony
+		// TODO: refactor this algorithm to new function
 		for(int i=step; i < (size+step); i++) { //*=step*/
 			ofPoint prevPos = blobPoints[(i-step)];
 			ofPoint curPos = blobPoints[(i)%size];
@@ -785,7 +787,7 @@ void ofxHandTracker::analyzeContours(vector<ofPoint> &_activeFingerTips) {
 
 			// here we search for minimum angles which define fingertips and gaps between them
 			// also check if normalZ is greater or equal zero for fingertips
-			if (angle < 60.0 && normalZ >= 0)
+			if (angle < threshAngle && normalZ >= 0)
 			{
 				if (minAngle >= angle) {
 					minIndex = i;
@@ -1017,7 +1019,7 @@ void ofxHandTracker::draw() {
 	//drawPointCloud(ofPoint(), handEdgePoints, ofColor::magenta);
 	//drawPointCloud(ofPoint(), handPalmCandidates, ofColor(255, 100, 100, 0));
 
-	//kMeansClustering(handPoints, 1, 6); // also draws clusters for now
+	kMeansClustering(handPoints, 1, 6); // also draws clusters for now
 
 	// drawing orientation
 	ofDrawArrow(handCentroid, handRootCentroid, 5.0);
@@ -1094,7 +1096,7 @@ void ofxHandTracker::draw() {
 	
 	ofDrawBitmapString("PCL Circularity: " + ofToString(getCircularity(handEdgePoints, handPoints)), 20, 90);
 
-	if (handEdgePoints.size() > 0) {
+	/*if (handEdgePoints.size() > 0) {
 	
 		//ofLog() << "BEFORE: " << handEdgePoints.front();
 
@@ -1125,7 +1127,7 @@ void ofxHandTracker::draw() {
 		glEnd();
 
 		ofPopMatrix();
-	}
+	}*/
 }
 
 float ofxHandTracker::getCircularity(const vector<ofPoint> &_edgePoints, const vector<ofPoint> &_areaPoints) {

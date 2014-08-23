@@ -1019,7 +1019,7 @@ void ofxHandTracker::draw() {
 	//drawPointCloud(ofPoint(), handEdgePoints, ofColor::magenta);
 	//drawPointCloud(ofPoint(), handPalmCandidates, ofColor(255, 100, 100, 0));
 
-	kMeansClustering(handPoints, 1, 6); // also draws clusters for now
+	kMeansClustering(handPoints, 10, 10); // also draws clusters for now
 
 	// drawing orientation
 	ofDrawArrow(handCentroid, handRootCentroid, 5.0);
@@ -1034,30 +1034,29 @@ void ofxHandTracker::draw() {
 	modelImg.draw(0, 480, 200, 200);
 	ofPopStyle();
 
-	ofDrawBitmapString("DILATED\nHAND MODEL:", 220, 450);
-	modelImgCV.draw(200, 480, 200, 200);
+	ofDrawBitmapString("DILATED\nHAND MODEL:", 20, 650);
+	modelImgCV.draw(0, 680, 200, 200);
 
 	//h.draw();
 	//h.getProjection().draw(200, 680, 200, 200);
 
-	ofDrawBitmapString("HAND \nPOINT CLOUD:", 420, 450);
+	ofDrawBitmapString("HAND \nPOINT CLOUD:", 220, 450);
 
 	ofPushStyle();
 	//ofSetColor(0, 255, 0);
-	realImg.draw(400, 480, 200, 200);
+	realImg.draw(200, 480, 200, 200);
 	ofPopStyle();
 
-	ofDrawBitmapString("DILATED HAND \nPOINT CLOUD:", 620, 450);
-	realImgCV.draw(600, 480, 200, 200);
+	ofDrawBitmapString("DILATED HAND \nPOINT CLOUD:", 420, 450);
+	realImgCV.draw(400, 480, 200, 200);
 
-	ofDrawBitmapString("PREV FRAME \n ABS DIFF:", 620, 680);
-	realImgCV_previous.draw(600, 680, 200, 200);
+	ofDrawBitmapString("PREV FRAME \n ABS DIFF:", 420, 680);
+	realImgCV_previous.draw(400, 680, 200, 200);
 
-	realImgCvContour.draw(1000, 480, 200, 200);
-	ofDrawBitmapString("CV Contour:", 1060, 460);
-
-
-	drawContours(ofPoint(1325, 0, 0));
+	realImgCvContour.draw(0, 880, 200, 200);
+	ofDrawBitmapString("CV Contour:", 60, 860);
+	
+	drawContours(ofPoint(200, 800, 0));
 
 	h.draw();
 
@@ -1075,13 +1074,13 @@ void ofxHandTracker::draw() {
 	diffImg.draw(800, 480, 200, 200);
 	tinyDiffImg.draw(800, 480, 200, 200);
 	*/
-	ofPushStyle();
+	/*ofPushStyle();
 		ofSetColor(255, 65, 170);
 		ofDrawBitmapString("EDGE SET SIZE: " + ofToString(handEdgePoints.size()) + 
 					   "\n  PALM SET SIZE: " + ofToString(handPalmCandidates.size()) + 
 					   "\n  HAND SET SIZE: " + ofToString(handPoints.size()), 20, 180);
 	ofPopStyle();
-	
+	*/
 
 	ofPushStyle();
 		ofSetColor(255, 65, 170);
@@ -1300,7 +1299,7 @@ void ofxHandTracker::drawContours(ofPoint _position) {
 			float normalZ = prevVector.crossed(nextVector).z; // for filtering peaks -> fingertips
 
 			ofPushMatrix();
-			ofTranslate(_position); // ofPoint(1250, 0, 0)
+			ofTranslate(_position + ofPoint(100, 80)); // ofPoint(1250, 0, 0)
 			/*ofScale(2,2,1);
 			ofSetColor(255-(angle*255.0/360.0), 0, angle*255.0/360.0);
 			ofRect(blobPoints[(i)%size].x, blobPoints[(i)%size].y, 2,2);
@@ -1343,7 +1342,6 @@ void ofxHandTracker::drawContours(ofPoint _position) {
 			}
 			
 			glBegin(GL_LINES);
-			
 			glColor4ub(255, 255, i, 255);
 			glVertex3f(blobPoints[(i)%size].x, blobPoints[(i)%size].y, 0);
 			glVertex3f(blobPoints[(i+1)%size].x, blobPoints[(i+1)%size].y, 0);
@@ -1352,8 +1350,9 @@ void ofxHandTracker::drawContours(ofPoint _position) {
 			ofPopMatrix();
 		}
 
+		// draw rectangles representing number of active fingertips => like this (for 3 fingertips): [][][] 
 		ofPushMatrix();
-		ofTranslate(_position + ofPoint(0, -20)); // ofPoint(1325, 500, 0)
+		ofTranslate(_position + ofPoint(300, 200)); // ofPoint(1325, 500, 0)
 		ofScale(2,2,1);
 		for(int i=0; i<fingerTipsCounter; i++) {
 			ofSetColor(255 - i*255/fingerTipsCounter, i*255/fingerTipsCounter, 0);
@@ -1368,8 +1367,8 @@ void ofxHandTracker::drawContours(ofPoint _position) {
 			ofSetColor(0, 255, 0);
 			ofRect(fTip.x, fTip.y, 10, 10);
 			
-			ofSetColor(50*(i+1), 0, 0);
-			ofLine(fTip, tempTip);
+			//ofSetColor(50*(i+1), 0, 0);
+			//ofLine(fTip, tempTip);
 		}
 	}
 }

@@ -24,4 +24,4 @@ The code in this repository is available under the [CC BY-SA 2.5 License] (http:
 Images
 --------------
 
-![Hand model example](https://github.com/blazm/ofxHandTracker/blob/0.8.1/screens/Screenshot%202014-08-22%2023.33.28.png?raw=true "(kinect not required)")
+![Hand model example](/screens/Screenshot%202014-08-22%2023.33.28.png?raw=true "(kinect not required)")

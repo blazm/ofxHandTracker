@@ -27,4 +27,4 @@ The code in this repository is available under the [CC BY-SA 2.5 License] (http:
 
 Images (to be updated in the future)
 --------------
-![ofxAddons Thumbnail](https://github.com/blazm/ofxHandTracker/blob/master/ofxaddons_thumbnail.png?raw=true "ofxAddons thumbnail")
+![ofxAddons Thumbnail](ofxaddons_thumbnail.png?raw=true "ofxAddons thumbnail")

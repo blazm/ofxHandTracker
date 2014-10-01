@@ -1019,7 +1019,7 @@ void ofxHandTracker::draw() {
 	//drawPointCloud(ofPoint(), handEdgePoints, ofColor::magenta);
 	//drawPointCloud(ofPoint(), handPalmCandidates, ofColor(255, 100, 100, 0));
 
-	kMeansClustering(handPoints, 10, 10); // also draws clusters for now
+	//kMeansClustering(handPoints, 10, 10); // also draws clusters for now
 
 	// drawing orientation
 	ofDrawArrow(handCentroid, handRootCentroid, 5.0);
@@ -1047,6 +1047,7 @@ void ofxHandTracker::draw() {
 	realImg.draw(200, 480, 200, 200);
 	ofPopStyle();
 
+	filterMedian(&realImgCV, 3);
 	ofDrawBitmapString("DILATED HAND \nPOINT CLOUD:", 420, 450);
 	realImgCV.draw(400, 480, 200, 200);
 
@@ -1057,9 +1058,21 @@ void ofxHandTracker::draw() {
 	ofDrawBitmapString("CV Contour:", 60, 860);
 	
 	drawContours(ofPoint(200, 800, 0));
+	
+	ofxCvGrayscaleImage tiny;
+	generateTinyImage(realImgCV, tiny, 24);
+	tiny.draw(800, 680, 200, 200);
+	ofDrawBitmapString("CV Tiny Image:", 800, 660);
+	
 
-	h.draw();
+	//realImgCV.blurGaussian();
+	ofxCvGrayscaleImage skeleton;
+	generateRegionSkeleton(realImgCV, skeleton);
+	skeleton.draw(600, 480, 200, 200);
+	ofDrawBitmapString("CV Region Skeleton:", 600, 460);
 
+	ofDrawBitmapString("CV Skeleton Blobs:", 800, 460);
+	drawRegionSkeletons(skeleton, ofPoint(800, 480));
 	//float matching = getImageMatching(realImgCV, modelImgCV, diffImg);
 	/*float matching = 0;// getImageMatching(tinyHandImg, tinyModelImg, tinyDiffImg);
 	glColor3f(1.0f, 1.0f, 1.0f);
@@ -1095,16 +1108,14 @@ void ofxHandTracker::draw() {
 	
 	ofDrawBitmapString("PCL Circularity: " + ofToString(getCircularity(handEdgePoints, handPoints)), 20, 90);
 
-	/*if (handEdgePoints.size() > 0) {
-	
+	if (handEdgePoints.size() > 0) {
 		//ofLog() << "BEFORE: " << handEdgePoints.front();
-
 		//sortEdgePoints(handEdgePoints); // TODO: debug why this does nothing?
-
 		//ofLog() << "AFTER: " << handEdgePoints.front();
 
 		vector<ofPoint> reducedEdgePoints;
-		simplifyByRadDist(handEdgePoints, reducedEdgePoints, 30);
+		//simplifyByRadDist(handEdgePoints, reducedEdgePoints, 30);
+		simplifyDP_openCV(handEdgePoints, reducedEdgePoints, 50);
 		ofDrawBitmapString("Reduced PCL size: " + ofToString(reducedEdgePoints.size()), 20, 60);
 
 		ofPushMatrix();
@@ -1126,7 +1137,235 @@ void ofxHandTracker::draw() {
 		glEnd();
 
 		ofPopMatrix();
-	}*/
+	}
+}
+
+void ofxHandTracker::filterMedian(ofxCvGrayscaleImage *i, int kernelSize) {
+	if (kernelSize <= 2) kernelSize = 3;
+	if (kernelSize % 2 == 0) kernelSize--;
+	
+	cv::Mat src = cv::Mat(i->height, i->width, CV_8UC1, i->getPixels(), 0);
+	cv::Mat dst;
+
+	//cv::GaussianBlur(src, dst2, cv::Size(15, 15), 1.0); // gaussian filtering if needed
+	cv::medianBlur(src, dst, kernelSize); // filter with median to remove noise
+
+	IplImage *img = new IplImage(dst); 
+	(*i) = img; // writeback to original image (makes a copy)
+	delete img; // delete temp image
+	
+	/*i->erode();
+	i->dilate();
+	i->erode();
+	
+	i->dilate();
+	i->erode();
+	i->dilate();*/
+}
+
+void ofxHandTracker::filterMedian(ofImage *i, int kernelSize) {
+	if (kernelSize <= 2) kernelSize = 3;
+	if (kernelSize % 2 == 0) kernelSize--;
+
+	cv::Mat src = cv::Mat(i->height, i->width, CV_8UC1, i->getPixels(), 0);
+	cv::Mat dst;
+
+	//cv::GaussianBlur(src, dst2, cv::Size(15, 15), 1.0); // gaussian filtering if needed
+	cv::medianBlur(src, dst, kernelSize); // filter with median to remove noise
+
+	IplImage *img = new IplImage(dst); 
+	ofxCvGrayscaleImage imgCV;
+	imgCV.allocate(i->height, i->width);
+	imgCV = img; // writeback to original image (makes a copy)
+
+	imgCV.dilate();
+	imgCV.erode();
+	imgCV.dilate();
+
+	imgCV.dilate();
+	imgCV.erode();
+	imgCV.dilate();
+
+	delete img; // delete temp image
+	
+	i->setFromPixels(imgCV.getPixelsRef());
+
+	/*i->dilate();
+	i->erode();
+	i->dilate();*/
+	/*
+	//i->dilate();
+	i->erode();
+	i->dilate();*/
+}
+
+void ofxHandTracker::filterGauss(ofxCvGrayscaleImage *i, int kernelSize) {
+	if (kernelSize <= 2) kernelSize = 3;
+	if (kernelSize % 2 == 0) kernelSize--;
+	
+	cv::Mat src = cv::Mat(i->height, i->width, CV_8UC1, i->getPixels(), 0);
+	cv::Mat dst;
+	
+	cv::GaussianBlur(src, dst, cv::Size(15, 15), 1.0); // gaussian filtering
+			
+	IplImage *img = new IplImage(dst); 
+	(*i) = img; // writeback to original image (makes a copy)
+	delete img; // delete temp image
+	
+	i->dilate();
+	i->erode();
+	i->dilate();
+}
+
+
+/**
+ * Code for thinning a binary image using Zhang-Suen algorithm.
+ * src: http://opencv-code.com/quick-tips/implementation-of-thinning-algorithm-in-opencv/
+ */
+
+/**
+ * Perform one thinning iteration.
+ * Normally you wouldn't call this function directly from your code.
+ *
+ * @param  im    Binary image with range = 0-1
+ * @param  iter  0=even, 1=odd
+ */
+void thinningIteration(cv::Mat& im, int iter)
+{
+    cv::Mat marker = cv::Mat::zeros(im.size(), CV_8UC1);
+
+    for (int i = 1; i < im.rows-1; i++)
+    {
+        for (int j = 1; j < im.cols-1; j++)
+        {
+            uchar p2 = im.at<uchar>(i-1, j);
+            uchar p3 = im.at<uchar>(i-1, j+1);
+            uchar p4 = im.at<uchar>(i, j+1);
+            uchar p5 = im.at<uchar>(i+1, j+1);
+            uchar p6 = im.at<uchar>(i+1, j);
+            uchar p7 = im.at<uchar>(i+1, j-1);
+            uchar p8 = im.at<uchar>(i, j-1);
+            uchar p9 = im.at<uchar>(i-1, j-1);
+
+            int A  = (p2 == 0 && p3 == 1) + (p3 == 0 && p4 == 1) + 
+                     (p4 == 0 && p5 == 1) + (p5 == 0 && p6 == 1) + 
+                     (p6 == 0 && p7 == 1) + (p7 == 0 && p8 == 1) +
+                     (p8 == 0 && p9 == 1) + (p9 == 0 && p2 == 1);
+            int B  = p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9;
+            int m1 = iter == 0 ? (p2 * p4 * p6) : (p2 * p4 * p8);
+            int m2 = iter == 0 ? (p4 * p6 * p8) : (p2 * p6 * p8);
+
+            if (A == 1 && (B >= 2 && B <= 6) && m1 == 0 && m2 == 0)
+                marker.at<uchar>(i,j) = 1;
+        }
+    }
+
+    im &= ~marker;
+}
+
+/**
+ * Function for thinning the given binary image
+ *
+ * @param  im  Binary image with range = 0-255
+ */
+void thinning(cv::Mat& im)
+{
+    im /= 255;
+
+    cv::Mat prev = cv::Mat::zeros(im.size(), CV_8UC1);
+    cv::Mat diff;
+
+    do {
+        thinningIteration(im, 0);
+        thinningIteration(im, 1);
+        cv::absdiff(im, prev, diff);
+        im.copyTo(prev);
+    } 
+    while (cv::countNonZero(diff) > 0);
+
+    im *= 255;
+}
+
+/*
+	src: http://felix.abecassis.me/2011/09/opencv-morphological-skeleton/
+*/
+void ofxHandTracker::generateRegionSkeleton(ofxCvGrayscaleImage &_img, ofxCvGrayscaleImage &_result) {
+
+	cv::Mat img = cv::Mat(_img.height, _img.width, CV_8UC1, _img.getPixels(), 0);
+
+	//cv::Mat img = cv::imread("O.png", 0);
+	cv::threshold(img, img, 16, 255, cv::THRESH_BINARY);
+
+	cv::Mat skel(img.size(), CV_8UC1, cv::Scalar(0));
+	cv::Mat temp(img.size(), CV_8UC1);
+
+	cv::Mat element = cv::getStructuringElement(cv::MORPH_OPEN /*MORPH_CROSS*/, cv::Size(3, 3));
+
+	cv::Mat prev = cv::Mat::zeros(img.size(), CV_8UC1);
+    cv::Mat diff;
+
+    do {
+        cv::morphologyEx(img, temp, cv::MORPH_OPEN, element);
+		cv::bitwise_not(temp, temp);
+		cv::bitwise_and(img, temp, temp);
+		cv::bitwise_or(skel, temp, skel);
+		cv::erode(img, img, element);
+ 
+        cv::absdiff(img, prev, diff);
+        img.copyTo(prev);
+    } 
+    while (cv::countNonZero(diff) > 0);
+
+	//thinning(img);
+
+	IplImage *iplImg = new IplImage(skel); 
+	_result.setFromPixels((const unsigned char*)iplImg->imageData, iplImg->width, iplImg->height);
+	delete iplImg; // delete temp image
+
+	_result.dilate();
+	_result.erode();
+	_result.dilate();
+
+	filterMedian(&_result, 5);
+}
+
+void ofxHandTracker::drawRegionSkeletons(ofxCvGrayscaleImage &_img, ofPoint _position) {
+	ofxCvContourFinder	contourFinder;
+	contourFinder.findContours(_img, _img.width*_img.height*0.001, _img.width*_img.height, 6, false, false); // this finds blobs
+	if(contourFinder.blobs.size() > 0) {
+		for (int i=0; i< contourFinder.blobs.size(); i++) {
+			ofxCvBlob handBlob = contourFinder.blobs[i];
+			vector<ofPoint> blobPoints = handBlob.pts;
+			drawPointCloud(_position, blobPoints, ofColor::aliceBlue);
+
+			ofPushMatrix();
+			ofTranslate(_position);
+			ofPoint min, max;
+			getCloudBBox(min, max, blobPoints); 
+
+			ofNoFill();
+			ofRect(min, max.x - min.x, max.y - min.y);
+			ofPopMatrix();
+
+			// TODO: linear regression, fit lines to blobs
+		}
+	}
+}
+
+IplImage* img_resize(IplImage* src_img, int new_width,int new_height)
+{
+    IplImage* des_img;
+    des_img=cvCreateImage(cvSize(new_width,new_height),src_img->depth,src_img->nChannels);
+    cvResize(src_img,des_img,CV_INTER_LINEAR);
+    return des_img;
+} 
+
+void ofxHandTracker::generateTinyImage(ofxCvGrayscaleImage &_img, ofxCvGrayscaleImage &_result, int _size) {
+	cv::Mat img = cv::Mat(_img.height, _img.width, CV_8UC1, _img.getPixels(), 0);
+	IplImage *iplImg = new IplImage(img);
+	IplImage *resized = img_resize(iplImg, _size, _size);
+	_result.setFromPixels((const unsigned char*)resized->imageData, resized->width, resized->height);
+	delete iplImg; // delete temp image
 }
 
 float ofxHandTracker::getCircularity(const vector<ofPoint> &_edgePoints, const vector<ofPoint> &_areaPoints) {
@@ -1221,7 +1460,7 @@ void ofxHandTracker::simplifyDP_openCV ( const vector<ofPoint>& contourIn, vecto
 		&contour_block  
 	);  
 
-	printf( "length = %f \n", cvArcLength( &contour ) );  
+	//printf( "length = %f \n", cvArcLength( &contour ) );  
 
 	//-- simplify contour.  
 

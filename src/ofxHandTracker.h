@@ -37,7 +37,18 @@ class ofxHandTracker
 		void kMeansClustering(vector<ofPoint> &_cloud, int _iterations, int _numClusters); // super simple k means clustering -> problem is seed selection
 		float getCircularity(const vector<ofPoint> &_edgePoints, const vector<ofPoint> &_areaPoints); // returns circularity measurement from edge points and area points
 		
+		// void rotatePCL(vector<ofPoint> &_cloud, ofPoint _origin, float _angle); // TODO: useful to obtain OBB from pcl, and aspect ratio from it
+
+		void generateRegionSkeleton(ofxCvGrayscaleImage &_img, ofxCvGrayscaleImage &_result); // TODO: test if it works? then do your own implementation?
+		void generateTinyImage(ofxCvGrayscaleImage &_img, ofxCvGrayscaleImage &_result, int _size);
+
+		
 	private:
+		// some filtering helpers
+		void filterMedian(ofxCvGrayscaleImage *i, int kernelSize);
+		void filterMedian(ofImage *i, int kernelSize);
+		void filterGauss(ofxCvGrayscaleImage *i, int kernelSize);
+
 		static int			ccw(ofPoint p1, ofPoint p2, ofPoint p3); // returns counter clock wise orientation of three points
 		
 		struct ofPointComparator {
@@ -156,6 +167,7 @@ class ofxHandTracker
 		void				getPalmCenterAndRadius(ofPoint &_palmCenter, float &_palmRadius);
 		ofPoint				getCentroid(vector<ofPoint> &points);
 		void				drawPointCloud(ofPoint _position, vector<ofPoint> &_cloud, ofColor _color);
+		void				drawRegionSkeletons(ofxCvGrayscaleImage &_img,  ofPoint _position);
 		//void				drawLine(ofImage *img, int x0, int y0, int z0, int x1, int y1, int z1);
 
 		bool				isFistFormed(int _fingerTipsCounter); // not used helper

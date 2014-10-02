@@ -67,7 +67,7 @@ ofxHandTracker::ofxHandTracker(ofxUserGenerator *_userGen, ofxHandGenerator *_ha
 	s.height = IMG_DIM;  
 	s.internalformat = GL_LUMINANCE32F_ARB;
 	depthFbo.allocate(s);*/
-	depthFbo.allocate(IMG_DIM, IMG_DIM);
+	//depthFbo.allocate(IMG_DIM, IMG_DIM);
 
 	//tinyHandImg.allocate(TINY_IMG_DIM, TINY_IMG_DIM, OF_IMAGE_GRAYSCALE);
 	//tinyModelImg.allocate(TINY_IMG_DIM, TINY_IMG_DIM, OF_IMAGE_GRAYSCALE);
@@ -1050,7 +1050,7 @@ void ofxHandTracker::draw() {
 	filterMedian(&realImgCV, 3);
 	ofDrawBitmapString("DILATED HAND \nPOINT CLOUD:", 420, 450);
 	realImgCV.draw(400, 480, 200, 200);
-
+	
 	ofDrawBitmapString("PREV FRAME \n ABS DIFF:", 420, 680);
 	realImgCV_previous.draw(400, 680, 200, 200);
 
@@ -1082,19 +1082,14 @@ void ofxHandTracker::draw() {
 	// TODO: find best matching of both skeletons, and adjust model parameters
 
 	//float matching = getImageMatching(realImgCV, modelImgCV, diffImg);
-	/*float matching = 0;// getImageMatching(tinyHandImg, tinyModelImg, tinyDiffImg);
+	//float matching = getImageMatching(tinyHandImg, tinyModelImg, tinyDiffImg);
+	float matching = getImageMatchingV2(skeleton, modelSkeleton, tinyDiffImg);
 	glColor3f(1.0f, 1.0f, 1.0f);
 	
-	char matchingBuffer[50];
-	int len;
-	len=sprintf (matchingBuffer, "HAND/MODEL MATCH: %f", matching);
-
-	string s = matchingBuffer;
-	ofDrawBitmapString(s, 800, 460, 0);
-
-	diffImg.draw(800, 480, 200, 200);
-	tinyDiffImg.draw(800, 480, 200, 200);
-	*/
+	ofDrawBitmapString("HAND/MODEL MATCH: " + ofToString(matching), 1200, 460, 0);
+	diffImg.draw(1200, 480, 200, 200);
+	tinyDiffImg.draw(1200, 480, 200, 200);
+	
 	/*ofPushStyle();
 		ofSetColor(255, 65, 170);
 		ofDrawBitmapString("EDGE SET SIZE: " + ofToString(handEdgePoints.size()) + 
@@ -1774,6 +1769,20 @@ void ofxHandTracker::generateModelProjection() {
 	
 	//modelImgCV.dilate();
 	//modelImgCV.erode();
+}
+
+float ofxHandTracker::getImageMatchingV2(ofxCvGrayscaleImage &realImage, 
+										ofxCvGrayscaleImage &modelImage,  
+										ofxCvGrayscaleImage &differenceImage) {
+
+	cv::Mat real = cv::Mat(realImage.height, realImage.width, CV_8UC1, realImage.getPixels(), 0);
+	cv::Mat model = cv::Mat(modelImage.height, modelImage.width, CV_8UC1, modelImage.getPixels(), 0);
+	cv::Mat diff;
+	//cv::threshold(img, img, 16, 255, cv::THRESH_BINARY);
+
+	cv::absdiff(real, model, diff);
+	differenceImage.setFromPixels(diff.data, realImage.width, realImage.height);
+	return cv::countNonZero(diff);
 }
 
 float ofxHandTracker::getImageMatching(ofxCvGrayscaleImage &realImage, 

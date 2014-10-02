@@ -38,7 +38,6 @@ class ofxHandTracker
 		float getCircularity(const vector<ofPoint> &_edgePoints, const vector<ofPoint> &_areaPoints); // returns circularity measurement from edge points and area points
 		
 		// void rotatePCL(vector<ofPoint> &_cloud, ofPoint _origin, float _angle); // TODO: useful to obtain OBB from pcl, and aspect ratio from it
-
 		void generateRegionSkeleton(ofxCvGrayscaleImage &_img, ofxCvGrayscaleImage &_result); // TODO: test if it works? then do your own implementation?
 		void generateTinyImage(ofxCvGrayscaleImage &_img, ofxCvGrayscaleImage &_result, int _size);
 		void drawSideProjections(ofxCvGrayscaleImage &_tiny, ofPoint _position, int _size=10);
@@ -74,7 +73,7 @@ class ofxHandTracker
 		ofxDepthGenerator	*depthGen; // not needed, remove if useless in future
 
 		// depth image fbo
-		ofFbo				depthFbo;
+		//ofFbo				depthFbo;
 
 		//hand model
 		ofxHandModel		h;
@@ -135,8 +134,6 @@ class ofxHandTracker
 		int		fTipHistory[FTIP_HIST_SIZE];
 		int		fTipLastInd;
 
-		bool	recheckFingers;
-
 		//TODO: based on fTipHistory we can trigger events for grabbing, painting etc (for demo application & show usability)
 		//ofEvent<string>		grabEvent;
 		//ofEvent<string>		paintEvent; // not sure how will be used but ok
@@ -160,6 +157,9 @@ class ofxHandTracker
 		float				getImageMatching(ofxCvGrayscaleImage &realImage, 
 										     ofxCvGrayscaleImage &modelImage,  
 											 ofxCvGrayscaleImage &differenceImage);
+		float				getImageMatchingV2(ofxCvGrayscaleImage &realImage, // using cv methods, probably faster
+											   ofxCvGrayscaleImage &modelImage,  
+											   ofxCvGrayscaleImage &differenceImage);
 		float				getImageMatching(ofImage &realImage,   
 											 ofImage &diffImage);
 		float				getImageMatching(ofxCvGrayscaleImage &differenceImage);

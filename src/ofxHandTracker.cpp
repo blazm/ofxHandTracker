@@ -1079,6 +1079,34 @@ void ofxHandTracker::draw() {
 	modelSkeleton.draw(1000, 480, 200, 200);
 	ofDrawBitmapString("CV Model Skeleton:", 1000, 460);
 
+	vector<ofVec4f> modelLines;
+	findLines(modelSkeleton,  modelLines);
+	//filterLines(modelLines, ofPoint(1000, 860));
+	//ofLog() << "NUM OF LINES: " << modelLines.size();
+	ofPushMatrix();
+	ofTranslate(1000, 680);
+	for (int i=0; i<modelLines.size(); i++) {
+		ofVec4f line = modelLines.at(i);
+		ofLine(ofPoint(line.x, line.y), ofPoint(line.z, line.w));
+	} 
+	ofPopMatrix();
+	ofDrawBitmapString("CV Model Lines:", 1000, 840);
+
+
+	vector<ofVec4f> handLines;
+	findLines(skeleton,  handLines);
+	//filterLines(handLines, ofPoint(1200, 860));
+	//ofLog() << "NUM OF LINES: " << handLines.size();
+	ofPushMatrix();
+	ofTranslate(1200, 680);
+	for (int i=0; i<handLines.size(); i++) {
+		ofVec4f line = handLines.at(i);
+		ofLine(ofPoint(line.x, line.y), ofPoint(line.z, line.w));
+	} 
+	ofPopMatrix();
+	ofDrawBitmapString("CV Hand Lines:", 1200, 840);
+
+
 	// TODO: find best matching of both skeletons, and adjust model parameters
 
 	//float matching = getImageMatching(realImgCV, modelImgCV, diffImg);
@@ -1351,6 +1379,112 @@ void ofxHandTracker::drawRegionSkeletons(ofxCvGrayscaleImage &_img, ofPoint _pos
 			// TODO: linear regression, fit lines to blobs
 		}
 	}
+}
+
+void ofxHandTracker::findLines(ofxCvGrayscaleImage &_img, vector<ofVec4f> &_lines) {
+
+	cv::Mat img = cv::Mat(_img.height, _img.width, CV_8UC1, _img.getPixels(), 0);
+	
+//	cv::Canny(img, img, 50, 200, 3);
+
+	/*vector<cv::Vec2f> lines;
+	cv::HoughLines(img, lines, 1, CV_PI/180, 10);
+
+    for( size_t i = 0; i < lines.size(); i++ )
+    {
+		_lines.push_back(ofVec4f(lines[i][0], lines[i][1], 0, 0 /*lines[i][2], lines[i][3]*));
+    }
+
+	 for( size_t i = 0; i < lines.size(); i++ )
+	  {
+		 float rho = lines[i][0], theta = lines[i][1];
+		 ofPoint pt1, pt2;
+		 double a = cos(theta), b = sin(theta);
+		 double x0 = a*rho, y0 = b*rho;
+		 pt1.x = cvRound(x0 + 1000*(-b));
+		 pt1.y = cvRound(y0 + 1000*(a));
+		 pt2.x = cvRound(x0 - 1000*(-b));
+		 pt2.y = cvRound(y0 - 1000*(a));
+		 //line( cdst, pt1, pt2, Scalar(0,0,255), 3, CV_AA);
+		 ofLine(pt1, pt2);
+	  }*/
+
+	  vector<cv::Vec4i> lines;
+	  HoughLinesP(img, lines, 1, CV_PI/180, 10, 5);
+	  for( size_t i = 0; i < lines.size(); i++ )
+	  {
+		//cv::Vec4i l = lines[i];
+		//ofLine( ofPoint(l[0], l[1]), ofPoint(l[2], l[3]));
+		_lines.push_back(ofVec4f(lines[i][0], lines[i][1], lines[i][2], lines[i][3]));
+	  }
+}
+
+void ofxHandTracker::filterLines(vector<ofVec4f> &_lines, ofPoint _position) {
+
+	// TODO: not useful yet, find better way to join / average line positions
+	vector<vector<ofVec4f>> groups;
+
+	for( size_t i = 0; i < _lines.size(); i++ )
+	{
+		ofVec4f l1 = _lines.at(i);
+
+		bool push_new = false;
+		if (groups.size() != 0) {
+			bool pushed = false;
+			for( size_t j = 0; j < groups.size(); j++ ) {
+				if (groups.at(j).size() == 0) continue;
+
+				ofVec4f l2 = groups.at(j).at(0);
+				ofVec2f p1 = ofVec2f(abs(l1.x - l1.z)/2., abs(l1.y - l1.w)/2.);
+				ofVec2f p2 = ofVec2f(abs(l2.x - l2.z)/2., abs(l2.y - l2.w)/2.);
+				// TODO: we should also calculate angle similarity?
+
+				if (p1.distance(p2) < 2.5) {
+					groups.at(j).push_back(l1);
+					pushed = true;
+				}
+			}
+			if (!pushed) 
+				push_new = true;
+		}
+		else {
+			push_new = true;
+		}
+		
+		if (push_new) {
+			vector<ofVec4f> lns;
+			lns.push_back(l1);
+			groups.push_back(lns);
+		}
+	}
+
+	//ofLog() << "NUM OF GROUPS: " << groups.size();
+	// quick draw
+	ofPushMatrix();
+	ofTranslate(_position);
+	for (int i = 0; i < groups.size(); i++)
+	{
+		if (groups.at(i).size() == 0) continue;
+
+		ofVec2f avgP1, avgP2;
+		for( int j = 0; j < groups.at(i).size(); j++ ) {
+			ofVec4f l = groups.at(i).at(j);
+			avgP1 += ofVec2f(l.x, l.y);
+			avgP2 += ofVec2f(l.z, l.w);
+		}
+		avgP1 /= groups.at(i).size();
+		avgP2 /= groups.at(i).size();
+
+		ofLine(avgP1, avgP2);
+	}
+	ofPopMatrix();
+
+	// remove lines:
+	/*_lines.erase(std::remove_if(
+    _lines.begin(), _lines.end(),
+    [](const ofVec4f& v) { 
+        return v.x < 0; // put your condition here
+    }), _lines.end());*/
 }
 
 // horizontal and vertical region projections of tiny image

@@ -48,6 +48,15 @@ class ofxHandModel
 		ofQuaternion&	getRotationRef();
 		ofQuaternion	getRotation();
 
+		ofxFingerModel*	getFingerRef(int _index) { 
+			if (0 <= _index && _index < NUM_FINGERS) 
+				return f[_index];
+		}
+
+		ofxThumbModel* getThumbRef() {
+			return (ofxThumbModel*)f[0];
+		}
+
 		ofxFingerParameters	saveFingerParameters();
 		//ofxPalmParameters savePalmParameters();
 

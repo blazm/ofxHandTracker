@@ -1063,9 +1063,8 @@ void ofxHandTracker::draw() {
 	generateTinyImage(realImgCV, tiny, 24);
 	tiny.draw(800, 680, 200, 200);
 	ofDrawBitmapString("CV Tiny Image:", 800, 660);
-	
+	drawSideProjections(tiny, ofPoint(800, 680), 8);
 
-	//realImgCV.blurGaussian();
 	ofxCvGrayscaleImage skeleton;
 	generateRegionSkeleton(realImgCV, skeleton);
 	skeleton.draw(600, 480, 200, 200);
@@ -1073,6 +1072,15 @@ void ofxHandTracker::draw() {
 
 	ofDrawBitmapString("CV Skeleton Blobs:", 800, 460);
 	drawRegionSkeletons(skeleton, ofPoint(800, 480));
+
+	// draw model skeleton 
+	ofxCvGrayscaleImage modelSkeleton;
+	generateRegionSkeleton(modelImgCV, modelSkeleton);
+	modelSkeleton.draw(1000, 480, 200, 200);
+	ofDrawBitmapString("CV Model Skeleton:", 1000, 460);
+
+	// TODO: find best matching of both skeletons, and adjust model parameters
+
 	//float matching = getImageMatching(realImgCV, modelImgCV, diffImg);
 	/*float matching = 0;// getImageMatching(tinyHandImg, tinyModelImg, tinyDiffImg);
 	glColor3f(1.0f, 1.0f, 1.0f);
@@ -1292,14 +1300,12 @@ void thinning(cv::Mat& im)
 void ofxHandTracker::generateRegionSkeleton(ofxCvGrayscaleImage &_img, ofxCvGrayscaleImage &_result) {
 
 	cv::Mat img = cv::Mat(_img.height, _img.width, CV_8UC1, _img.getPixels(), 0);
-
-	//cv::Mat img = cv::imread("O.png", 0);
 	cv::threshold(img, img, 16, 255, cv::THRESH_BINARY);
 
 	cv::Mat skel(img.size(), CV_8UC1, cv::Scalar(0));
 	cv::Mat temp(img.size(), CV_8UC1);
 
-	cv::Mat element = cv::getStructuringElement(cv::MORPH_OPEN /*MORPH_CROSS*/, cv::Size(3, 3));
+	cv::Mat element = cv::getStructuringElement(cv::MORPH_CROSS, cv::Size(3, 3)); // MORPH_OPEN
 
 	cv::Mat prev = cv::Mat::zeros(img.size(), CV_8UC1);
     cv::Mat diff;
@@ -1315,7 +1321,7 @@ void ofxHandTracker::generateRegionSkeleton(ofxCvGrayscaleImage &_img, ofxCvGray
         img.copyTo(prev);
     } 
     while (cv::countNonZero(diff) > 0);
-
+	
 	//thinning(img);
 
 	IplImage *iplImg = new IplImage(skel); 
@@ -1349,6 +1355,22 @@ void ofxHandTracker::drawRegionSkeletons(ofxCvGrayscaleImage &_img, ofPoint _pos
 
 			// TODO: linear regression, fit lines to blobs
 		}
+	}
+}
+
+// horizontal and vertical region projections of tiny image
+void ofxHandTracker::drawSideProjections(ofxCvGrayscaleImage &_tiny, ofPoint _position, int _size) {
+
+	// heights
+	for(int i=0; i<_tiny.width; i++) {
+		int h =_tiny.countNonZeroInRegion(i, 0, 1, _tiny.height);
+		ofRect(_position + ofPoint(i*_size, _tiny.height*_size), _size, h*_size); 
+	}
+
+	// widths
+	for(int i=0; i<_tiny.height; i++) {
+		int w =_tiny.countNonZeroInRegion(0, i, _tiny.width, 1);
+		ofRect(_position + ofPoint( -w*_size, i*_size), w*_size, _size);
 	}
 }
 

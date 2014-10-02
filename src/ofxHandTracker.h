@@ -41,7 +41,7 @@ class ofxHandTracker
 
 		void generateRegionSkeleton(ofxCvGrayscaleImage &_img, ofxCvGrayscaleImage &_result); // TODO: test if it works? then do your own implementation?
 		void generateTinyImage(ofxCvGrayscaleImage &_img, ofxCvGrayscaleImage &_result, int _size);
-
+		void drawSideProjections(ofxCvGrayscaleImage &_tiny, ofPoint _position, int _size=10);
 		
 	private:
 		// some filtering helpers

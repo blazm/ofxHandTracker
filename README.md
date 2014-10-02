@@ -13,7 +13,7 @@ This addon is result of my Bachelor thesis project at Faculty of Computer and In
 Beacuse of fast development some parts of code are not properly structured, may be repeated, or are not optimally written, etc. In the future the addon structure will most likely change - also its functionality will be improved. 
 Main issue is still about robustness of hand tracking and its alignment with kinematic model. 
 
-More useful info coming soon...
+Latest updates are available in branch 0.8.1.
 
 Requirements
 --------------

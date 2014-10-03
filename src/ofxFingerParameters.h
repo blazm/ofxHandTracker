@@ -10,20 +10,31 @@
 
 //namespace ofxHandTracker { // TODO: add structured namespaces, remove macro defines
 	// left and right thumb swing
-	#define THUMB_MIN_ANGLE_X		 -30//-30 -> less opened
-	#define THUMB_MAX_ANGLE_X	      10//0 
+	#define THUMB_MIN_ANGLE_X		 -45//-30 -> less opened
+	#define THUMB_MAX_ANGLE_X	      0//0 
 
 	// front and back thumb swing
-	#define THUMB_MIN_ANGLE_Z		   0
-	#define THUMB_MAX_ANGLE_Z		  20
+	#define THUMB_MIN_ANGLE_Z		  0 // 0
+	#define THUMB_MAX_ANGLE_Z		  37.5 // 20
 
 	// define other fingers front and back swing limits (actual angle of first segment, value is then propagated to others)
 	#define FINGER_MIN_ANGLE_Z	 0
 	#define FINGER_MAX_ANGLE_Z	90
 
 	// also need to define non-thumb finer x angles -> but they are different for each finger
-	#define FINGER_MIN_ANGLE_X -10
-	#define FINGER_MAX_ANGLE_X	10
+	#define FINGER_MIN_ANGLE_X  0  // legacy, remove soon
+	#define FINGER_MAX_ANGLE_X	10 // legacy, remove soon
+
+	#define FINGER_1_MIN_ANGLE_X	-5
+	#define FINGER_2_MIN_ANGLE_X    -1.5
+	#define FINGER_3_MIN_ANGLE_X	 2.5
+	#define FINGER_4_MIN_ANGLE_X	 5
+
+	#define FINGER_1_MAX_ANGLE_X	 25
+	#define FINGER_2_MAX_ANGLE_X	 7.5
+	#define FINGER_3_MAX_ANGLE_X	-12.5
+	#define FINGER_4_MAX_ANGLE_X	-25
+
 //}
 
 // used to store local finger parameters
@@ -103,10 +114,15 @@ class ofxFingerParameters
 		//~ofxFingerParameters(void){};
 
 		ofxFingerParameters(int _params) {
-			fx1 = 0;
+			/*fx1 = 0;
 			fx2 = fx1;
 			fx3 = fx2;
-			fx4 = fx3;
+			fx4 = fx3;*/
+
+			fx1 = FINGER_MAX_ANGLE_X*2;
+			fx2 = 0;
+			fx3 = FINGER_MIN_ANGLE_X;
+			fx4 = FINGER_MIN_ANGLE_X*2;
 
 			fz1 = FINGER_MAX_ANGLE_Z;
 			fz2 = FINGER_MAX_ANGLE_Z;

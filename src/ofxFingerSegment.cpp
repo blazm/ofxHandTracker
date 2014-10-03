@@ -71,7 +71,7 @@ void ofxFingerSegment::update()
 void ofxFingerSegment::draw()
 {
 	//ofSetLineWidth(4);
-	ofSetColor(ofColor::green);
+	//ofSetColor(ofColor::green);
 
 	//ofSphere((origin+direction*0.25), 20);
 	//ofSphere((origin+direction*0.5), 20);

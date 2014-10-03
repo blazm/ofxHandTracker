@@ -24,6 +24,8 @@ ofxThumbModel::ofxThumbModel(ofPoint _origin)
 	top.origin = mid.origin + mid.direction;
 	top.direction = mid.direction;
 
+	palm.origin = root.origin;
+
 	fingerTip = top.origin + top.direction;
 
 	root.length = 200;
@@ -56,6 +58,15 @@ void ofxThumbModel::update()
 	mid.origin = root.origin + root.direction;
 	top.origin = mid.origin + mid.direction;
 	fingerTip = top.origin + top.direction;
+}
+
+void ofxThumbModel::draw()
+{
+	ofSetColor(ofColor::cyan);
+	ofSphere(fingerTip, 10);
+	top.draw();
+	mid.draw();
+	root.draw();
 }
 
 void ofxThumbModel::keyPressed(int key){

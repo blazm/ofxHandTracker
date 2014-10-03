@@ -11,14 +11,21 @@ ofxFingerModel::ofxFingerModel(ofPoint _origin)
 	top.origin = mid.origin + mid.direction;
 	top.direction = mid.direction;
 
+	palm.angleX = 0;
+	palm.angleZ = 0;
+	palm.origin = root.origin;
+	palm.direction = -root.direction;
+	palm.length = -160;
+
 	// x angle changes
 	mid.angleX = root.angleX;
 	top.angleX = mid.angleX;
-
+	
 	root.length = 100;
 	mid.length = 90;
 	top.length = 80;
 
+	palm.update();
 	root.update();
 	mid.update();
 	top.update();
@@ -40,10 +47,17 @@ ofxFingerModel::ofxFingerModel(void)
 	mid.angleX = root.angleX;
 	top.angleX = mid.angleX;
 
+	palm.angleX = 0;
+	palm.angleZ = 0;
+	palm.origin = root.origin;
+	palm.direction = -root.direction;
+	palm.length = -160;
+
 	root.length = 100;
 	mid.length = 90;
 	top.length = 80;
 
+	palm.update();
 	root.update();
 	mid.update();
 	top.update();
@@ -55,6 +69,7 @@ ofxFingerModel::~ofxFingerModel(void)
 }
 
 void ofxFingerModel::update(){
+	palm.update();
 	root.update();
 	mid.update();
 	top.update();
@@ -76,6 +91,7 @@ void ofxFingerModel::draw()
 	top.draw();
 	mid.draw();
 	root.draw();
+	palm.draw();
 }
 
 void ofxFingerModel::keyPressed(int key){
@@ -123,6 +139,11 @@ void ofxFingerModel::setLength(float rootL, float midL, float topL) {
 	root.length = rootL;
 	mid.length = midL;
 	top.length = topL;
+}
+
+void ofxFingerModel::setTipLength(float _len) {
+	setLength(_len * _GOLDEN_RATIO_x2, _len * _GOLDEN_RATIO, _len);
+	palm.length = -_len * _GOLDEN_RATIO_x3 * 1.2;
 }
 
 void ofxFingerModel::setAngleZ(float _angle) {

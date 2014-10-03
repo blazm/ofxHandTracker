@@ -28,7 +28,8 @@ class ofApp : public ofBaseApp{
 		ofxHandModel		hand;
 
 		ofxPanel			gui;
-		ofParameter<float>	factor;
+		ofParameter<float>	closeFactor;
+		ofParameter<float>	spreadFactor;
 		ofParameter<float>  size;
 		//ofParameter<int>	mask;
 		ofParameter<string> fps;

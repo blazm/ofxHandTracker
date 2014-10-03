@@ -891,7 +891,7 @@ void ofxHandTracker::setParamsFromFingerTips(int _fingerTipsCounter) {
 	const int X_PARAMS_SIZE = 6;
 	ofxFingerParameters xParams[X_PARAMS_SIZE];
 
-	xParams[0] = ofxFingerParameters(11, 0, -10, -17, 0); //default hand setup
+	xParams[0] = ofxFingerParameters(12, 0, -13, -20, 0); //default hand setup
 	xParams[1] = ofxFingerParameters(9, 0, -8, -14, 0); 
 	xParams[2] = ofxFingerParameters(7, 0, -6, -9, 0);
 	xParams[3] = ofxFingerParameters(4, 0, -4, -4, 0);
@@ -907,14 +907,17 @@ void ofxHandTracker::setParamsFromFingerTips(int _fingerTipsCounter) {
 	//if(avgFingers == 0) {
 	//if(fistFormed) {
 		//here check if hand completely closed or just closed fingers
-		ofxFingerParameters zeroTips[2];
+		/*ofxFingerParameters zeroTips[2];
 		zeroTips[0] = ofxFingerParameters(31) + ofxFingerParameters(1, 0, -1, -2, -30); // just fingers
 		zeroTips[1] = ofxFingerParameters(0);				// fist formed
 		findParamsOptimum(zeroTips, 2);
+		*/
+		
+		findParamsOptimum(h, handSkeleton, modelSkeleton, tinyDiffImg, 31);
 	}
 	else if (_fingerTipsCounter >= 5) {
 	//else if (avgFingers >= 5) {
-		ofxFingerParameters p = ofxFingerParameters(31);
+		/*ofxFingerParameters p = ofxFingerParameters(31);
 	//	p = p + xParams[0];
 
 		//const int X_PARAMS_5_SIZE = 6;
@@ -926,13 +929,15 @@ void ofxHandTracker::setParamsFromFingerTips(int _fingerTipsCounter) {
 		xParams[3] = ofxFingerParameters(4, 0, -4, -4, -15);
 		xParams[4] = ofxFingerParameters(1, 0, -2, 1, -20);
 		xParams[5] = ofxFingerParameters(0, 0, 0, 2, -25);    // fingers aligned tight by x angle
-
+		
 		int params[] = {31};
 		int size = 1;
 
 		//findParamsOptimum(params, size, xParams, X_PARAMS_SIZE); // not working properly
-		//findParamsOptimum(params, size);
-		h.restoreFrom(p, false);
+		findParamsOptimum(params, size);
+		h.restoreFrom(p, false);*/
+
+		findParamsOptimum(h, handSkeleton, modelSkeleton, tinyDiffImg, 31);
 		//h.interpolate(p);
 	}
 	else if(_fingerTipsCounter == 1) {
@@ -968,6 +973,7 @@ void ofxHandTracker::setParamsFromFingerTips(int _fingerTipsCounter) {
 		int size = 5;
 		findParamsOptimum(params4, size);
 	}
+
 }
 
 float ofxHandTracker::angleOfVectors(ofPoint _downVector, ofPoint _rotVector, bool _absolute) {
@@ -1064,24 +1070,24 @@ void ofxHandTracker::draw() {
 	tiny.draw(800, 680, 200, 200);
 	ofDrawBitmapString("CV Tiny Image:", 800, 660);
 	drawSideProjections(tiny, ofPoint(800, 680), 8);
-
-	ofxCvGrayscaleImage skeleton;
-	generateRegionSkeleton(realImgCV, skeleton);
-	skeleton.draw(600, 480, 200, 200);
+	
+	//ofxCvGrayscaleImage handSkeleton;
+	generateRegionSkeleton(realImgCV, handSkeleton);
+	handSkeleton.draw(600, 480, 200, 200);
 	ofDrawBitmapString("CV Region Skeleton:", 600, 460);
 
 	ofDrawBitmapString("CV Skeleton Blobs:", 800, 460);
-	drawRegionSkeletons(skeleton, ofPoint(800, 480));
+	drawRegionSkeletons(handSkeleton, ofPoint(800, 480));
 
 	// draw model skeleton 
-	ofxCvGrayscaleImage modelSkeleton;
+	//ofxCvGrayscaleImage modelSkeleton;
 	generateRegionSkeleton(modelImgCV, modelSkeleton);
 	modelSkeleton.draw(1000, 480, 200, 200);
 	ofDrawBitmapString("CV Model Skeleton:", 1000, 460);
 
 	vector<ofVec4f> modelLines;
 	findLines(modelSkeleton,  modelLines);
-	//filterLines(modelLines, ofPoint(1000, 860));
+	filterLines(modelLines, ofPoint(1000, 860));
 	//ofLog() << "NUM OF LINES: " << modelLines.size();
 	ofPushMatrix();
 	ofTranslate(1000, 680);
@@ -1094,8 +1100,8 @@ void ofxHandTracker::draw() {
 
 
 	vector<ofVec4f> handLines;
-	findLines(skeleton,  handLines);
-	//filterLines(handLines, ofPoint(1200, 860));
+	findLines(handSkeleton,  handLines);
+	filterLines(handLines, ofPoint(1200, 860));
 	//ofLog() << "NUM OF LINES: " << handLines.size();
 	ofPushMatrix();
 	ofTranslate(1200, 680);
@@ -1111,7 +1117,7 @@ void ofxHandTracker::draw() {
 
 	//float matching = getImageMatching(realImgCV, modelImgCV, diffImg);
 	//float matching = getImageMatching(tinyHandImg, tinyModelImg, tinyDiffImg);
-	float matching = getImageMatchingV2(skeleton, modelSkeleton, tinyDiffImg);
+	float matching = getImageMatchingV2(handSkeleton, modelSkeleton, tinyDiffImg);
 	glColor3f(1.0f, 1.0f, 1.0f);
 	
 	ofDrawBitmapString("HAND/MODEL MATCH: " + ofToString(matching), 1200, 460, 0);
@@ -1327,13 +1333,14 @@ void ofxHandTracker::generateRegionSkeleton(ofxCvGrayscaleImage &_img, ofxCvGray
 
 	cv::Mat skel(img.size(), CV_8UC1, cv::Scalar(0));
 	cv::Mat temp(img.size(), CV_8UC1);
+	cv::Mat eroded(img.size(), CV_8UC1);
 
 	cv::Mat element = cv::getStructuringElement(cv::MORPH_CROSS, cv::Size(3, 3)); // MORPH_OPEN
 
 	cv::Mat prev = cv::Mat::zeros(img.size(), CV_8UC1);
     cv::Mat diff;
 
-    do {
+    /*do {
         cv::morphologyEx(img, temp, cv::MORPH_OPEN, element);
 		cv::bitwise_not(temp, temp);
 		cv::bitwise_and(img, temp, temp);
@@ -1344,7 +1351,19 @@ void ofxHandTracker::generateRegionSkeleton(ofxCvGrayscaleImage &_img, ofxCvGray
         img.copyTo(prev);
     } 
     while (cv::countNonZero(diff) > 0);
-	
+	*/
+	bool done;	 // updated code with optimizations	
+	do
+	{
+	  cv::erode(img, eroded, element);
+	  cv::dilate(eroded, temp, element); // temp = open(img)
+	  cv::subtract(img, temp, temp);
+	  cv::bitwise_or(skel, temp, skel);
+	  eroded.copyTo(img);
+ 
+	  done = (cv::countNonZero(img) == 0);
+	} while (!done);
+
 	//thinning(img);
 
 	IplImage *iplImg = new IplImage(skel); 
@@ -1775,6 +1794,44 @@ float ofxHandTracker::getHandDepth(float _rawZ, bool _normalized, float _minZ, f
 	return raw;
 }
 
+void ofxHandTracker::findParamsOptimum(ofxHandModel &_h, 
+									   ofxCvGrayscaleImage &_hand, 
+									   ofxCvGrayscaleImage &_model, 
+									   ofxCvGrayscaleImage &_diff, 
+									   short _mask) {
+	ofxFingerParameters bestParams = ofxFingerParameters(_mask);
+	float			bestMatching = _hand.width*_hand.height;
+	//float			bestMatching = IMG_DIM*IMG_DIM;
+	for(float i=0.1; i<1.0; i+=0.1) {
+
+		//for(float j=0.1; j<1.0; j+=0.1) {
+			_h.spread(i, _mask);
+			//_h.close(i, _mask);
+			ofxFingerParameters curParams = _h.saveFingerParameters();
+			//h.restoreFrom(curParams);
+
+			//tinyModelImg.set(0);
+			generateModelProjection();
+			//tinyModelImg.scaleIntoMe(modelImgCV);
+			//tinyHandImg.scaleIntoMe(realImgCV);
+
+			//float matching = getImageMatching(tinyHandImg, tinyModelImg, tinyDiffImg);
+			//float matching = shaderMatcher.matchImages(modelImg, realImg);
+			//float matching = getImageMatching(modelImg, shaderMatcher.imagesAbsDiff(modelImg, realImg));
+			float matching = getImageMatchingV2(_hand, _model, _diff);
+
+
+			if(matching < bestMatching) 
+			//if(matching < bestMatching && matching > 0.01)
+			{
+				bestMatching = matching;
+				bestParams = curParams;
+			}
+		//}
+	}
+	_h.restoreFrom(bestParams);
+}
+
 void ofxHandTracker::findParamsOptimum(int _params[], int _size) {
 	ofxFingerParameters bestParams = ofxFingerParameters(0);
 	float			bestMatching = 0;
@@ -1790,7 +1847,9 @@ void ofxHandTracker::findParamsOptimum(int _params[], int _size) {
 
 		//float matching = getImageMatching(tinyHandImg, tinyModelImg, tinyDiffImg);
 		//float matching = shaderMatcher.matchImages(modelImg, realImg);
-		float matching = getImageMatching(modelImg, shaderMatcher.imagesAbsDiff(modelImg, realImg));
+		//float matching = getImageMatching(modelImg, shaderMatcher.imagesAbsDiff(modelImg, realImg));
+		float matching = getImageMatchingV2(handSkeleton, modelSkeleton, tinyDiffImg);
+
 
 		if(matching > bestMatching) 
 		//if(matching < bestMatching && matching > 0.01)
@@ -1849,12 +1908,13 @@ void ofxHandTracker::findParamsOptimum(int _paramsZ[], int _sizeZ, ofxFingerPara
 			h.restoreFrom(merged, true);
 
 			generateModelProjection();
-			tinyModelImg.scaleIntoMe(modelImgCV);
-			tinyHandImg.scaleIntoMe(realImgCV);
+			//tinyModelImg.scaleIntoMe(modelImgCV);
+			//tinyHandImg.scaleIntoMe(realImgCV);
 
 			//float matching = getImageMatching(tinyHandImg, tinyModelImg, tinyDiffImg);
 			//float matching = shaderMatcher.matchImages(modelImg, realImg);
-			float matching = getImageMatching(modelImg, shaderMatcher.imagesAbsDiff(modelImg, realImg));
+			//float matching = getImageMatching(modelImg, shaderMatcher.imagesAbsDiff(modelImg, realImg));
+			float matching = getImageMatchingV2(handSkeleton, modelSkeleton, tinyDiffImg);
 
 			tinyModelImg.set(0);
 
@@ -1911,12 +1971,17 @@ float ofxHandTracker::getImageMatchingV2(ofxCvGrayscaleImage &realImage,
 
 	cv::Mat real = cv::Mat(realImage.height, realImage.width, CV_8UC1, realImage.getPixels(), 0);
 	cv::Mat model = cv::Mat(modelImage.height, modelImage.width, CV_8UC1, modelImage.getPixels(), 0);
+
+	int realCount = cv::countNonZero(real);
+	int modelCount = cv::countNonZero(model);
+
 	cv::Mat diff;
 	//cv::threshold(img, img, 16, 255, cv::THRESH_BINARY);
 
 	cv::absdiff(real, model, diff);
 	differenceImage.setFromPixels(diff.data, realImage.width, realImage.height);
-	return cv::countNonZero(diff);
+	int diffCount = cv::countNonZero(diff);
+	return (float)diffCount / (float)realCount;
 }
 
 float ofxHandTracker::getImageMatching(ofxCvGrayscaleImage &realImage, 

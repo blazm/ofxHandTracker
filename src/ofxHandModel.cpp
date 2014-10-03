@@ -5,25 +5,25 @@ ofxHandModel::ofxHandModel(void)
 	origin = ofPoint();
 	scaling = ofPoint(FIXED_SCALE);
 
-	f[0] = new ofxThumbModel(origin + ofPoint(0, 150, 50));
-	f[0]->setLength(130, 70, 50);
-
 	f[1] = new ofxFingerModel(ofPoint(0, -80+40-60, 75));
-	f[1]->setLength(75, 65, 55);
-	f[1]->root.angleX = 11;
-
 	f[2] = new ofxFingerModel(ofPoint(0, -100+40-60, 25));
-	f[2]->setLength(85, 75, 65);
-	f[2]->root.angleX = 0;
-
 	f[3] = new ofxFingerModel(ofPoint(0, -90+40-60, -25));
-	f[3]->setLength(80, 70, 60);
-	f[3]->root.angleX = -10; 
-
 	f[4] = new ofxFingerModel(ofPoint(0, -70+40-60, -75));
-	f[4]->setLength(60, 50, 40);
+	f[0] = new ofxThumbModel(f[1]->root.origin - ofPoint(0, f[1]->palm.length, 0));
+
+	f[1]->root.angleX = 11;
+	f[2]->root.angleX = 0;
+	f[3]->root.angleX = -10; 
 	f[4]->root.angleX = -17;
 	
+	f[0]->setTipLength(47.5);
+	f[1]->setTipLength(35);
+	f[2]->setTipLength(40);
+	f[3]->setTipLength(37.5);
+	f[4]->setTipLength(30);
+
+	f[0]->root.origin.set(f[1]->root.origin - ofPoint(0, f[1]->palm.length, 0));
+
 	// Quaternion rotation init
 	//this slows down the rotate a little bit
 	dampen = .4;
@@ -109,9 +109,9 @@ void ofxHandModel::update()
 	ofPoint f4r = f[4]->root.origin;
 	
 	// custom points for palm
-	ofPoint f4c = ofPoint(f[4]->root.origin.x, f[0]->root.origin.y - 30, f[4]->root.origin.z);
-	ofPoint f3c = ofPoint(f[3]->root.origin.x, f[0]->root.origin.y, f[3]->root.origin.z);
-	ofPoint f0c = ofPoint(f[3]->root.origin.x, f[0]->root.origin.y, f[0]->root.origin.z);
+	ofPoint f4c = ofPoint(f[4]->root.origin.x, f[4]->root.origin.y - f[4]->palm.length, f[4]->root.origin.z);
+	ofPoint f3c = ofPoint(f[3]->root.origin.x, /*2*/(f[3]->root.origin.y - f[3]->palm.length), f[3]->root.origin.z);
+	ofPoint f0c = ofPoint(f[1]->root.origin.x, /*5*/(f[1]->root.origin.y - f[1]->palm.length), f[2]->root.origin.z);
 
 	palmMesh.addVertex(f0r);
 	palmMesh.addVertex(f0m);
@@ -194,7 +194,7 @@ void ofxHandModel::draw()
 	glMatrixMode(GL_MODELVIEW);
 	
 	glPushMatrix();
-
+	ofPushStyle();
 	glTranslatef(origin.x, origin.y, origin.z);
 
 	/*
@@ -233,17 +233,17 @@ void ofxHandModel::draw()
 	ofSetColor(ofColor::green);
 	//ofLine(f[0]->root.origin, ofPoint(f[0]->root.origin.x, f[0]->root.origin.y, -f[0]->root.origin.z));
 	//ofLine(f[0]->root.origin, ofPoint(f[0]->root.origin.x, f[0]->root.origin.y+20, 0));
-		
-	ofLine(ofPoint(f[0]->mid.origin.x, f[0]->mid.origin.y, f[0]->mid.origin.z),
+	
+	/*ofLine(ofPoint(f[0]->mid.origin.x, f[0]->mid.origin.y, f[0]->mid.origin.z),
 		   f[1]->root.origin);
 
 	ofLine(f[3]->root.origin,
 		   ofPoint(f[0]->root.origin.x, f[0]->root.origin.y, f[3]->root.origin.z));
 	ofLine(f[2]->root.origin,
 		   ofPoint(f[0]->root.origin.x, f[0]->root.origin.y, f[2]->root.origin.z));
-
-	ofLine(f[1]->root.origin,
-		   ofPoint(f[0]->root.origin.x, f[0]->root.origin.y, f[1]->root.origin.z));
+	*/
+	//ofLine(f[1]->root.origin,
+	//	   ofPoint(f[0]->root.origin.x, f[0]->root.origin.y, f[1]->root.origin.z));
 	ofLine(ofPoint(f[0]->root.origin.x, f[0]->root.origin.y, f[1]->root.origin.z), 
 		   ofPoint(f[0]->root.origin.x, f[0]->root.origin.y+20, 0));
 	ofLine(ofPoint(f[0]->root.origin.x, f[0]->root.origin.y+20, 0), 
@@ -260,6 +260,7 @@ void ofxHandModel::draw()
 	ofSetColor(ofColor::blue);
 	ofLine(ofPoint(0,0,0), ofPoint(0,0,100));
 	ofSetColor(ofColor::white);
+	ofPopStyle();
 	glPopMatrix();
 }
 
@@ -678,7 +679,7 @@ GlobalParameters ofxHandModel::saveGlobalParameters() {
 
 void ofxHandModel::close(float _factor, short _mask) {
 	ofClamp(_factor, 0, 1);
-	ofxFingerParameters params;
+	ofxFingerParameters params = saveFingerParameters(); // so we already have current x angles
 	if ((_mask >> 1) & 1) params.fz1 = _factor * (FINGER_MAX_ANGLE_Z - FINGER_MIN_ANGLE_Z) + FINGER_MIN_ANGLE_Z;
 	if ((_mask >> 2) & 1) params.fz2 = _factor * (FINGER_MAX_ANGLE_Z - FINGER_MIN_ANGLE_Z) + FINGER_MIN_ANGLE_Z;
 	if ((_mask >> 3) & 1) params.fz3 = _factor * (FINGER_MAX_ANGLE_Z - FINGER_MIN_ANGLE_Z) + FINGER_MIN_ANGLE_Z;
@@ -696,6 +697,32 @@ void ofxHandModel::open(float _factor, short _mask) {
 	close(1 - _factor, _mask);
 }
 
+void ofxHandModel::spread(float _factor, short _mask) {
+	ofClamp(_factor, 0, 1);
+	ofxFingerParameters params = saveFingerParameters(); // so we already have current z angles
+	if ((_mask >> 1) & 1) params.fx1 = _factor * (FINGER_1_MAX_ANGLE_X - FINGER_1_MIN_ANGLE_X) + FINGER_1_MIN_ANGLE_X;
+	if ((_mask >> 2) & 1) params.fx2 = _factor * (FINGER_2_MAX_ANGLE_X - FINGER_2_MIN_ANGLE_X) + FINGER_2_MIN_ANGLE_X;
+	if ((_mask >> 3) & 1) params.fx3 = _factor * (FINGER_3_MAX_ANGLE_X - FINGER_3_MIN_ANGLE_X) + FINGER_3_MIN_ANGLE_X;
+	if ((_mask >> 4) & 1) params.fx4 = _factor * (FINGER_4_MAX_ANGLE_X - FINGER_4_MIN_ANGLE_X) + FINGER_4_MIN_ANGLE_X;
+	if ((_mask >> 0) & 1) {
+		//params.tz = _factor * (THUMB_MAX_ANGLE_Z - THUMB_MIN_ANGLE_Z) + THUMB_MIN_ANGLE_Z;
+		params.tx = _factor * (THUMB_MAX_ANGLE_X - THUMB_MIN_ANGLE_X) + THUMB_MIN_ANGLE_X;
+		params.tz = _factor * (THUMB_MAX_ANGLE_Z - THUMB_MIN_ANGLE_Z) + THUMB_MIN_ANGLE_Z;
+		//params.tx = _factor * (THUMB_MIN_ANGLE_X - THUMB_MAX_ANGLE_X) + THUMB_MAX_ANGLE_X;
+	}
+	
+	interpolate(params, _mask);
+}
+
+void ofxHandModel::narrow(float _factor, short _mask) {
+	ofClamp(_factor, 0, 1);
+	spread(1 - _factor, _mask);
+}
+
+void ofxHandModel::interpolateParam(float &_desired, float &_prev, float _smooth) {
+	_desired = _prev + ((_desired - _prev)*_smooth);
+}
+
 // TODO: not functional at the moment 
 // (should be realized similarly in a way that is 
 // implemented in BezierConnection class - so no timers are used)
@@ -708,32 +735,52 @@ void ofxHandModel::interpolate(ofxFingerParameters _to, short _mask) {
 	//desiredParams = prevParams + ((desiredParams - prevParams)*0.1f);
 
 	// operators +,-,* wont work properly (yet), this works:
-	if ((_mask >> 1) & 1)	desiredParams.fz1 = prevParams.fz1 + ((desiredParams.fz1 - prevParams.fz1)*0.1f);
-	else					desiredParams.fz1 = prevParams.fz1;
+	if ((_mask >> 1) & 1) {	
+		interpolateParam(desiredParams.fz1, prevParams.fz1);
+		interpolateParam(desiredParams.fx1, prevParams.fx1);
+	}
+	else {				
+		desiredParams.fz1 = prevParams.fz1;
+		desiredParams.fx1 = prevParams.fx1;
+	}
 
+	if ((_mask >> 2) & 1) {	
+		interpolateParam(desiredParams.fz2, prevParams.fz2);
+		interpolateParam(desiredParams.fx2, prevParams.fx2);
+	}
+	else {				
+		desiredParams.fz2 = prevParams.fz2;
+		desiredParams.fx2 = prevParams.fx2;
+	}
 
-	if ((_mask >> 2) & 1)	desiredParams.fz2 = prevParams.fz2 + ((desiredParams.fz2 - prevParams.fz2)*0.1f);
-	else					desiredParams.fz2 = prevParams.fz2;
+	if ((_mask >> 3) & 1) {	
+		interpolateParam(desiredParams.fz3, prevParams.fz3);
+		interpolateParam(desiredParams.fx3, prevParams.fx3);
+	}
+	else {				
+		desiredParams.fz3 = prevParams.fz3;
+		desiredParams.fx3 = prevParams.fx3;
+	}
 
-
-	if ((_mask >> 3) & 1)	desiredParams.fz3 = prevParams.fz3 + ((desiredParams.fz3 - prevParams.fz3)*0.1f);
-	else					desiredParams.fz3 = prevParams.fz3;
-
-
-	if ((_mask >> 4) & 1)   desiredParams.fz4 = prevParams.fz4 + ((desiredParams.fz4 - prevParams.fz4)*0.1f);
-	else					desiredParams.fz4 = prevParams.fz4;
-
+	if ((_mask >> 4) & 1) {	
+		interpolateParam(desiredParams.fz4, prevParams.fz4);
+		interpolateParam(desiredParams.fx4, prevParams.fx4);
+	}
+	else {				
+		desiredParams.fz4 = prevParams.fz4;
+		desiredParams.fx4 = prevParams.fx4;
+	}
 	
-	if ((_mask >> 0) & 1) {
-		desiredParams.tz = prevParams.tz + ((desiredParams.tz - prevParams.tz)*0.1f);
-		desiredParams.tx = prevParams.tx + ((desiredParams.tx - prevParams.tx)*0.1f);
+	if ((_mask >> 0) & 1)  {	
+		interpolateParam(desiredParams.tz, prevParams.tz);
+		interpolateParam(desiredParams.tx, prevParams.tx);
 	}
 	else {
 		desiredParams.tz = prevParams.tz;
 		desiredParams.tx = prevParams.tx;
 	}
 	
-	restoreFrom(desiredParams);
+	restoreFrom(desiredParams, true);
 
 	//rollAngle = prevRollAngle + ((rollAngle - prevRollAngle)*0.5f); // smoothing
 }

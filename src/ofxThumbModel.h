@@ -12,6 +12,7 @@ public:
 	~ofxThumbModel(void);
 
 	void	update();
+	void	draw();
 	void	keyPressed(int key);
 	
 	void	setAngleX(float _angle);

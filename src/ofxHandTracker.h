@@ -95,6 +95,8 @@ class ofxHandTracker
 		// -> difference image (between real and model hand)
 		ofxCvGrayscaleImage diffImg;
 
+		ofxCvGrayscaleImage handSkeleton;
+		ofxCvGrayscaleImage modelSkeleton;
 		//ofImage				handFrontImg, handSideImg, handTopImg;
 
 		ofxCvGrayscaleImage				tinyModelImg;
@@ -179,6 +181,12 @@ class ofxHandTracker
 		void				findParamsOptimum(ofxFingerParameters _params[], int _size);
 		void				findParamsOptimum(int _paramsZ[], int _sizeZ, ofxFingerParameters _paramsX[], int _sizeX);
 
+		
+		void				findParamsOptimum(ofxHandModel &_h, 
+											  ofxCvGrayscaleImage &_hand, 
+											  ofxCvGrayscaleImage &_model, 
+											  ofxCvGrayscaleImage &_diff, 
+											  short _mask); 
 		// here is place for advanced shader & fbo objects
 		// which will help us realize paralel image comparing on GPU
 		ofxImageMatcher		shaderMatcher;

@@ -33,8 +33,6 @@ class ofxHandModel
 		ofImage			getProjection(ofPoint _palmCenter = ofPoint(IMG_DIM/2, IMG_DIM/2, 0), int _kernelSize = FIXED_KERNEL);
 		void			drawFingerProjection(ofxFingerModel f); //helper only
 
-		void			restoreFrom(ofxFingerParameters _localParams, bool _includeAngleX = false);
-
 		void			setScale(float _factor);
 		void			setScale(ofPoint _scale);
 		ofPoint&		getScaleRef();
@@ -57,16 +55,22 @@ class ofxHandModel
 			return (ofxThumbModel*)f[0];
 		}
 
+		void			restoreFrom(ofxFingerParameters _localParams, bool _includeAngleX = false);
 		ofxFingerParameters	saveFingerParameters();
 		//ofxPalmParameters savePalmParameters();
 
 		// _mask -> masks fingers by bits (1- enabled, 0 - disabled)
 		void			interpolate(ofxFingerParameters _to, short _mask = 31); // interpolates hand params, _mask: 1 - 31 (enables fingers bitwise)
+		
 		void			open(float _factor = 1.0, short _mask = 31); // opens hand, _factor: 0 - 1, _mask: 1 - 31 (enables fingers bitwise)
 		void			close(float _factor = 1.0, short _mask = 31); // closes hand, _factor: 0 - 1, _mask: 1 - 31 (enables fingers bitwise)
 
+		void			spread(float _factor = 1.0, short _mask = 31); // TODO
+		void			narrow(float _factor = 1.0, short _mask = 31);
 
 	private:
+		void			interpolateParam(float &_desired, float &_prev, float _smooth = 0.1f); // internal helper
+
 		ofxFingerModel*			f[NUM_FINGERS]; 
 
 		//ofPoint		  rotation;
@@ -99,7 +103,7 @@ class ofxHandModel
 		ofMesh			palmMesh;  // used for drawing palm region as triangle strip
 		//ofVbo			modelVbo; // not used right now
 
-		ofShader		dilateShader;
+		ofShader		dilateShader; // for generating dilated model image (e.q. model projection)
 
 		// img & pixels for creating proj image
 		ofPixels		projPix;

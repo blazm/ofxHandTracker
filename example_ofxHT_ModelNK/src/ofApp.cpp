@@ -6,11 +6,13 @@ void ofApp::setup(){
 	//hand = ofxHandModel();
 
 	gui.setup("Model parameters:"); // most of the time you don't need a name but don't forget to call setup
-	gui.add(factor.set( "open/close:", 0.0, 0.0, 1.0));
+	gui.add(closeFactor.set( "open/close:", 0.0, 0.0, 1.0));
+	gui.add(spreadFactor.set( "spread/narrow:", 0.0, 0.0, 1.0));
 	gui.add(size.set("scale size:", 0.5, 0.33, 1.5));
 	//gui.add(mask.set("mask", 1, 1, 31));
 
-	factor.addListener(this, &ofApp::factorChanged);
+	closeFactor.addListener(this, &ofApp::factorChanged);
+	spreadFactor.addListener(this, &ofApp::factorChanged);
 	size.addListener(this, &ofApp::sizeChanged);
 
 	string fingerNames[] = {"thumb", "index", "middle", "ring", "pinky"};
@@ -38,7 +40,8 @@ void ofApp::sizeChanged(float & _factor) {
 
 //--------------------------------------------------------------
 void ofApp::update(){
-	hand.close(factor.get(), fingerMask);
+	hand.spread(spreadFactor.get(), fingerMask);
+	hand.close(closeFactor.get(), fingerMask);
 	hand.update();
 
 	fps = "FPS: " + ofToString(ofGetFrameRate());

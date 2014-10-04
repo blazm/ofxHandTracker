@@ -17,37 +17,28 @@ ofxHandTracker::ofxHandTracker(ofxUserGenerator *_userGen, ofxHandGenerator *_ha
 	h.setScale(.3);
 	//h.scaling = ofPoint(.3,.3,.35);
 
-	// setup images to be used for tracking real hand
+	// setup ofImages for generating / getting pixels
 	realImg.allocate(IMG_DIM, IMG_DIM, OF_IMAGE_GRAYSCALE); 
-	realImg.setUseTexture(true);
-
+	modelImg.allocate(IMG_DIM, IMG_DIM, OF_IMAGE_GRAYSCALE);  
 	blankImg.allocate(IMG_DIM, IMG_DIM, OF_IMAGE_GRAYSCALE); 
-	blankImg.setUseTexture(true);
-	//colorImg.allocate(IMG_DIM, IMG_DIM, OF_IMAGE_COLOR); 
-	//colorImg.setUseTexture(true);
 
 	for (int i=0; i<IMG_DIM; i++) {    
 		for (int j=0; j<IMG_DIM; j++) {    
-			realImg.setColor(i, j, ofColor::black);    // ofColor(ofRandom(255), ofRandom(255), ofRandom(255))
+			realImg.setColor(i, j, ofColor::black);
 			blankImg.setColor(i, j, ofColor::black);
+			modelImg.setColor(i, j, ofColor::black); 
 		}    
 	}
 
+	// set up CV images
 	realImgCV.allocate(IMG_DIM, IMG_DIM);
 	realImgCV_previous.allocate(IMG_DIM, IMG_DIM);
-
-	// setup model images
-	modelImg.allocate(IMG_DIM, IMG_DIM, OF_IMAGE_GRAYSCALE);  
-	for (int i=0; i<IMG_DIM; i++) {    
-		for (int j=0; j<IMG_DIM; j++) {    
-			modelImg.setColor(i, j, ofColor::black);    // ofColor(ofRandom(255), ofRandom(255), ofRandom(255))
-		}    
-	}
-
 	modelImgCV.allocate(IMG_DIM, IMG_DIM);
-
-	// setup contour & difference image
 	diffImg.allocate(IMG_DIM,IMG_DIM);
+
+	realImgCV.set(0);
+	realImgCV_previous.set(0);
+	modelImgCV.set(0);
 	diffImg.set(0);
 
 	palmCenter = ofPoint(IMG_DIM/2, IMG_DIM/2, 0);
@@ -75,8 +66,6 @@ ofxHandTracker::ofxHandTracker(ofxUserGenerator *_userGen, ofxHandGenerator *_ha
 	tinyModelImg.allocate(TINY_IMG_DIM, TINY_IMG_DIM);
 	tinyDiffImg.allocate(TINY_IMG_DIM, TINY_IMG_DIM);
 
-	//ofxFingerParameters p = ofxFingerParameters(30);
-	//fingerTips.resize(5);
 
 	shaderMatcher.setup(IMG_DIM, IMG_DIM);
 }
@@ -130,20 +119,12 @@ void ofxHandTracker::fetchHandPointCloud(ofPoint _handTrackedPos) {
 	}
 	
 	// check if bounding square outside of kinect view
-	if(xx < bbMinX)
-		bbMinX = xx;
-	if(yy < bbMinY)
-		bbMinY = yy;
+	if(xx < bbMinX) bbMinX = xx;
+	if(yy < bbMinY) bbMinY = yy;
 
-	if(yy > height-bbMaxY)
-		bbMaxY = height - yy;
-	if(xx > height-bbMaxX)
-		bbMaxX = width - xx;
-
-	//char handPosBuffer[50];
-	//int len;
-	//len=std::sprintf (handPosBuffer, "HAND POS - x: %i y:%i z:%i", xx, yy, zz);
-	//string s = handPosBuffer;
+	if(yy > height-bbMaxY) bbMaxY = height - yy;
+	if(xx > height-bbMaxX) bbMaxX = width - xx;
+	
 	ofDrawBitmapString(ofToString(ofPoint(xx, yy, zz)), 100, 100, 0);
 
 	handPoints.clear();
@@ -163,7 +144,6 @@ void ofxHandTracker::fetchHandPointCloud(ofPoint _handTrackedPos) {
 			ofPoint &nextPoint = userGen->getWorldCoordinateAt(x+step, y, userID);
 			ofPoint &pos = userGen->getWorldCoordinateAt(x, y, userID);
 
-			
 			if(abs(pos.z - nextPoint.z) > 50) {
 				if(nextPoint.z != 0 && nextPoint.distance(handTrackedPos) < 150 && nextPoint.distance(handTrackedPos) > 20)  //
 					handEdgePoints.push_back(nextPoint);
@@ -294,7 +274,6 @@ void ofxHandTracker::kMeansClustering(vector<ofPoint> &_cloud, int _iterations, 
 			clusters[minI].push_back(p);
 		}
 	
-
 		// calculate new centroids for each seed
 		// set new seeds to centroid points
 		for (int i=0; i<_numClusters; i++) {
@@ -598,8 +577,7 @@ void ofxHandTracker::update() {
 		
 		//h.curRot *= ofQuaternion((angleInDegreesZY), ofVec3f(1,0,0));
 		*/
-		realImg.update();
-
+		
 		// maybe scaling like this?
 		//realImg.setAnchorPercent(0.5, 0.5);
 		//realImg.resize();
@@ -607,15 +585,10 @@ void ofxHandTracker::update() {
 
 		h.update();
 		
-		generateModelProjection();
-		
+		//generateModelProjection();
+		realImg.update();
 		analyzeContours(activeFingerTips);
-
-		//modelImgCV.dilate();
-		/*modelImgCV.dilate();
-		modelImgCV.dilate();
-		modelImgCV.dilate();
-		modelImgCV.dilate();*/
+		setParamsFromFingerTips(fingerTipsCounter);
 	//}
 
 
@@ -853,8 +826,6 @@ void ofxHandTracker::analyzeContours(vector<ofPoint> &_activeFingerTips) {
 
 			_activeFingerTips.push_back((fTip - palmCenter) + handTrackedPos);
 		}
-
-		setParamsFromFingerTips(fingerTipsCounter);
 	}	
 }
 
@@ -867,7 +838,6 @@ bool ofxHandTracker::isFistFormed(int _fingerTipsCounter) {
 				fistFormed = false;
 		}
 
-		//ofNotifyEvent(grabEvent, "grabbed");
 		if(!fistFormed) { // not sure anymore what this part does, but it alters the current index of ftip history array
 			int index = (fTipLastInd-1)%FTIP_HIST_SIZE;
 			while(fTipHistory[index] == 0) {
@@ -875,7 +845,6 @@ bool ofxHandTracker::isFistFormed(int _fingerTipsCounter) {
 				index = (index)%FTIP_HIST_SIZE;
 			}
 			_fingerTipsCounter = fTipHistory[((index-1)%FTIP_HIST_SIZE)];
-			//_fingerTipsCounter = _prevCounter; // I just refactored code from other function, this are remains
 		}
 	}
 
@@ -973,7 +942,6 @@ void ofxHandTracker::setParamsFromFingerTips(int _fingerTipsCounter) {
 		int size = 5;
 		findParamsOptimum(params4, size);
 	}
-
 }
 
 float ofxHandTracker::angleOfVectors(ofPoint _downVector, ofPoint _rotVector, bool _absolute) {
@@ -1036,7 +1004,6 @@ void ofxHandTracker::draw() {
 
 	ofDrawBitmapString("HAND MODEL:", 20, 460);
 	ofPushStyle();
-	//ofSetColor(255, 0, 0);
 	modelImg.draw(0, 480, 200, 200);
 	ofPopStyle();
 
@@ -1065,13 +1032,13 @@ void ofxHandTracker::draw() {
 	
 	drawContours(ofPoint(200, 800, 0));
 	
-	ofxCvGrayscaleImage tiny;
+	/*ofxCvGrayscaleImage tiny; // NOTICE: reallocating occurs
 	generateTinyImage(realImgCV, tiny, 24);
 	tiny.draw(800, 680, 200, 200);
 	ofDrawBitmapString("CV Tiny Image:", 800, 660);
 	drawSideProjections(tiny, ofPoint(800, 680), 8);
-	
-	//ofxCvGrayscaleImage handSkeleton;
+	*/
+	// draw real hand skeleton 
 	generateRegionSkeleton(realImgCV, handSkeleton);
 	handSkeleton.draw(600, 480, 200, 200);
 	ofDrawBitmapString("CV Region Skeleton:", 600, 460);
@@ -1080,7 +1047,6 @@ void ofxHandTracker::draw() {
 	drawRegionSkeletons(handSkeleton, ofPoint(800, 480));
 
 	// draw model skeleton 
-	//ofxCvGrayscaleImage modelSkeleton;
 	generateRegionSkeleton(modelImgCV, modelSkeleton);
 	modelSkeleton.draw(1000, 480, 200, 200);
 	ofDrawBitmapString("CV Model Skeleton:", 1000, 460);
@@ -1112,8 +1078,7 @@ void ofxHandTracker::draw() {
 	ofPopMatrix();
 	ofDrawBitmapString("CV Hand Lines:", 1200, 840);
 
-
-	// TODO: find best matching of both skeletons, and adjust model parameters
+	// TODO: find best matching from both skeletons (use image or lines), and adjust model parameters
 
 	//float matching = getImageMatching(realImgCV, modelImgCV, diffImg);
 	//float matching = getImageMatching(tinyHandImg, tinyModelImg, tinyDiffImg);
@@ -1183,14 +1148,11 @@ void ofxHandTracker::filterMedian(ofxCvGrayscaleImage *i, int kernelSize) {
 	
 	cv::Mat src = cv::Mat(i->height, i->width, CV_8UC1, i->getPixels(), 0);
 	cv::Mat dst;
-
 	//cv::GaussianBlur(src, dst2, cv::Size(15, 15), 1.0); // gaussian filtering if needed
 	cv::medianBlur(src, dst, kernelSize); // filter with median to remove noise
 
-	IplImage *img = new IplImage(dst); 
-	(*i) = img; // writeback to original image (makes a copy)
-	delete img; // delete temp image
-	
+	i->setFromPixels(dst.data, dst.size().width, dst.size().height);
+
 	/*i->erode();
 	i->dilate();
 	i->erode();
@@ -1204,17 +1166,9 @@ void ofxHandTracker::filterMedian(ofImage *i, int kernelSize) {
 	if (kernelSize <= 2) kernelSize = 3;
 	if (kernelSize % 2 == 0) kernelSize--;
 
-	cv::Mat src = cv::Mat(i->height, i->width, CV_8UC1, i->getPixels(), 0);
-	cv::Mat dst;
-
-	//cv::GaussianBlur(src, dst2, cv::Size(15, 15), 1.0); // gaussian filtering if needed
-	cv::medianBlur(src, dst, kernelSize); // filter with median to remove noise
-
-	IplImage *img = new IplImage(dst); 
 	ofxCvGrayscaleImage imgCV;
 	imgCV.allocate(i->height, i->width);
-	imgCV = img; // writeback to original image (makes a copy)
-
+	filterMedian(&imgCV, kernelSize);
 	imgCV.dilate();
 	imgCV.erode();
 	imgCV.dilate();
@@ -1223,17 +1177,7 @@ void ofxHandTracker::filterMedian(ofImage *i, int kernelSize) {
 	imgCV.erode();
 	imgCV.dilate();
 
-	delete img; // delete temp image
-	
 	i->setFromPixels(imgCV.getPixelsRef());
-
-	/*i->dilate();
-	i->erode();
-	i->dilate();*/
-	/*
-	//i->dilate();
-	i->erode();
-	i->dilate();*/
 }
 
 void ofxHandTracker::filterGauss(ofxCvGrayscaleImage *i, int kernelSize) {
@@ -1242,13 +1186,9 @@ void ofxHandTracker::filterGauss(ofxCvGrayscaleImage *i, int kernelSize) {
 	
 	cv::Mat src = cv::Mat(i->height, i->width, CV_8UC1, i->getPixels(), 0);
 	cv::Mat dst;
-	
 	cv::GaussianBlur(src, dst, cv::Size(15, 15), 1.0); // gaussian filtering
-			
-	IplImage *img = new IplImage(dst); 
-	(*i) = img; // writeback to original image (makes a copy)
-	delete img; // delete temp image
 	
+	i->setFromPixels(dst.data, dst.size().width, dst.size().height);
 	i->dilate();
 	i->erode();
 	i->dilate();
@@ -1363,18 +1303,13 @@ void ofxHandTracker::generateRegionSkeleton(ofxCvGrayscaleImage &_img, ofxCvGray
  
 	  done = (cv::countNonZero(img) == 0);
 	} while (!done);
-
-	//thinning(img);
-
-	IplImage *iplImg = new IplImage(skel); 
-	_result.setFromPixels((const unsigned char*)iplImg->imageData, iplImg->width, iplImg->height);
-	delete iplImg; // delete temp image
-
+	
+	_result.setFromPixels(skel.data, skel.size().width, skel.size().height);
 	_result.dilate();
 	_result.erode();
 	_result.dilate();
 
-	filterMedian(&_result, 5);
+	filterMedian(&_result, 3);
 }
 
 void ofxHandTracker::drawRegionSkeletons(ofxCvGrayscaleImage &_img, ofPoint _position) {
@@ -1394,16 +1329,13 @@ void ofxHandTracker::drawRegionSkeletons(ofxCvGrayscaleImage &_img, ofPoint _pos
 			ofNoFill();
 			ofRect(min, max.x - min.x, max.y - min.y);
 			ofPopMatrix();
-
-			// TODO: linear regression, fit lines to blobs
 		}
 	}
 }
 
+// finds lines on using CV probability Hough line transform
 void ofxHandTracker::findLines(ofxCvGrayscaleImage &_img, vector<ofVec4f> &_lines) {
-
 	cv::Mat img = cv::Mat(_img.height, _img.width, CV_8UC1, _img.getPixels(), 0);
-	
 //	cv::Canny(img, img, 50, 200, 3);
 
 	/*vector<cv::Vec2f> lines;
@@ -1799,14 +1731,15 @@ void ofxHandTracker::findParamsOptimum(ofxHandModel &_h,
 									   ofxCvGrayscaleImage &_model, 
 									   ofxCvGrayscaleImage &_diff, 
 									   short _mask) {
-	ofxFingerParameters bestParams = ofxFingerParameters(_mask);
-	float			bestMatching = _hand.width*_hand.height;
+	ofxFingerParameters bestParams = _h.saveFingerParameters();
+	generateModelProjection();
+	float			bestMatching = getImageMatchingV2(_hand, _model, _diff);
 	//float			bestMatching = IMG_DIM*IMG_DIM;
 	for(float i=0.1; i<1.0; i+=0.1) {
 
 		//for(float j=0.1; j<1.0; j+=0.1) {
 			_h.spread(i, _mask);
-			//_h.close(i, _mask);
+			_h.open(1.0, _mask);
 			ofxFingerParameters curParams = _h.saveFingerParameters();
 			//h.restoreFrom(curParams);
 
@@ -1954,7 +1887,7 @@ void ofxHandTracker::generateModelProjection() {
 	//h.setScale(backupScaling - ((getHandDepth(activeHandPos.z)*0.6) - 0.15));
 
 	palmCenter.z = 0;
-	modelImg = h.getProjection(palmCenter); //palmCenter, 6*(1-getHandDepth(activeHandPos.z))
+	h.getProjection(modelImg, palmCenter); //palmCenter, 6*(1-getHandDepth(activeHandPos.z))
 	//modelImg = h.getProjection();
 	modelImg.setImageType(OF_IMAGE_GRAYSCALE);
 	modelImgCV.setFromPixels(modelImg);

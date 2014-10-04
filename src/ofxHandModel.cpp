@@ -32,23 +32,19 @@ ofxHandModel::ofxHandModel(void)
 	// init of experimental section with fbos & shaders
 	ofFbo::Settings s = ofFbo::Settings();  
 	s.width = IMG_DIM;  
-	s.height = IMG_DIM;  
+	s.height = IMG_DIM; 
+	//s.internalformat = GL_RED;
 	//s.useDepth = true;  
 	//s.useStencil = true;  
 	//s.depthStencilAsTexture = true;
 	meshFbo.allocate(s);  
-	meshFbo.setUseTexture(true);
+	dilateFbo.allocate(s);
 
-	//meshFbo.allocate(IMG_DIM, IMG_DIM);
-	dilateFbo.allocate(IMG_DIM, IMG_DIM);
-
-	cout << "FBO objects supported: " << meshFbo.checkGLSupport() << endl;
+	ofLogNotice() << "[HandModel]: FBOs supported: " << meshFbo.checkGLSupport();
 
 	dilateShader.load("shaders/dilate");
 
 	projImg.allocate(IMG_DIM, IMG_DIM, OF_IMAGE_GRAYSCALE);
-	projImg.setImageType(OF_IMAGE_GRAYSCALE);
-
 	projPix.allocate(IMG_DIM, IMG_DIM, OF_IMAGE_GRAYSCALE);
 }
 
@@ -63,8 +59,6 @@ ofxHandModel::~ofxHandModel(void)
 
 void ofxHandModel::update()
 {
-	//interpolationTimer.update();
-
 	// update all fingers
 	for(int i=0; i<NUM_FINGERS; i++) {
 		f[i]->update();
@@ -354,85 +348,27 @@ void ofxHandModel::drawFingerProjection(ofxFingerModel f) {
 	glEnd();
 }
 
-ofImage ofxHandModel::getProjection(ofPoint _palmCenter, int _kernelSize) {
-
-	ofPoint s = scaling;
-	scaling = ofPoint(FIXED_SCALE);
-
-	meshFbo.begin();
-	ofClear(0,0,0);
-	//ofRect(0,0,IMG_DIM, IMG_DIM);
-	drawMesh();
-	meshFbo.end();
-
-	scaling = s;
-
-	//meshFbo.draw(IMG_DIM, 0, IMG_DIM, IMG_DIM); // this is not drawn?
-	/*ofPixels projPixels;
-	meshFbo.readToPixels(projPixels);
-
-	ofImage projImg;
-	projImg.setFromPixels(projPixels);
-	*/
-
-
-	//ofFbo resultFbo;
-	//resultFbo.allocate(IMG_DIM, IMG_DIM);
-	
-	//meshFbo.begin();
-	dilateFbo.begin();
-		ofClear(0,0,0);
-		dilateShader.begin();
-			dilateShader.setUniformTexture("sampler0", meshFbo.getTextureReference(), 0);
-			dilateShader.setUniform1i("kernel_size", _kernelSize);
-			meshFbo.draw(_palmCenter.x - IMG_DIM/2, _palmCenter.y - IMG_DIM/2,IMG_DIM, IMG_DIM);
-			//ofRect(0,0,0,IMG_DIM, IMG_DIM); // not required in oF.8.1
-		dilateShader.end();
-	dilateFbo.end();
-	//meshFbo.end();
-	
-	//meshFbo.draw(0,0);
-	//resultFbo.draw(0,0);
-	
-
+void ofxHandModel::getProjection(ofImage &_target, ofPoint _palmCenter, int _kernelSize) {
+	drawFboProjection(ofPoint(), _palmCenter, _kernelSize, false);
 	dilateFbo.readToPixels(projPix);
-	projImg.setFromPixels(projPix);
-
-	//resultFbo.draw(0, 0, IMG_DIM, IMG_DIM);
-	//resultImg.draw(0, 640, 100, 100);
-	
-	//projImg.setAnchorPoint(_palmCenter.x, _palmCenter.y);
-	//projImg.setAnchorPercent(_palmCenter.x/IMG_DIM, _palmCenter.y/IMG_DIM);
-
-	return projImg;
+	_target.setFromPixels(projPix);
 }
 
-void ofxHandModel::drawFboProjection(ofPoint _position, ofPoint _palmCenter, int _kernelSize) {
+void ofxHandModel::drawFboProjection(ofPoint _position, ofPoint _palmCenter, int _kernelSize, bool _draw) {
 
 	ofPoint s = scaling;
 	scaling = ofPoint(FIXED_SCALE);
 	
+	ofPushStyle();
+	ofDisableAlphaBlending();
+
 	meshFbo.begin();
-	ofClear(0,0,0);
-	//ofRect(0,0,IMG_DIM, IMG_DIM);
+	ofClear(0);
 	drawMesh();
 	meshFbo.end();
 
-	
 	scaling = s;
-
-	//meshFbo.draw(IMG_DIM, 0, IMG_DIM, IMG_DIM); // this is not drawn?
-	/*ofPixels projPixels;
-	meshFbo.readToPixels(projPixels);
-
-	ofImage projImg;
-	projImg.setFromPixels(projPixels);
-	*/
-
-	//ofFbo resultFbo;
-	//resultFbo.allocate(IMG_DIM, IMG_DIM);
 	
-	//meshFbo.begin();
 	dilateFbo.begin();
 		ofClear(0,0,0);
 		dilateShader.begin();
@@ -442,14 +378,14 @@ void ofxHandModel::drawFboProjection(ofPoint _position, ofPoint _palmCenter, int
 			//ofRect(0,0,0,IMG_DIM, IMG_DIM); // not required in oF.8.1
 		dilateShader.end();
 	dilateFbo.end();
-	//meshFbo.end();
-	dilateFbo.draw(_position);
+
+	ofPopStyle();
+
+	if (_draw) dilateFbo.draw(_position);
 }
 
 void ofxHandModel::keyPressed(int key)
 {
-	//cout << "KEY:" << (char)key << " " << key << endl;
-
 	switch(key) {
 		// finger control keys
 		case 'q':	f[1]->keyPressed('+');	break;	
@@ -504,27 +440,15 @@ void ofxHandModel::mousePressed(int x, int y, int button){
 
 ofPoint ofxHandModel::getIndexFingerWorldCoord()
 {
-	ofPoint worldCoords;
-	ofMatrix4x4 m;
-	m.glTranslate(origin.x, origin.y, origin.z);
-
-	//Extract the rotation from the current rotation
-    float angle; ofVec3f axis;  
-    curRot.getRotate(angle, axis);  
-	m.glRotate(angle, axis.x, axis.y, axis.z); //apply the quaternion's rotation 
-	m.glScale(scaling.x, scaling.y, scaling.z); // - right hand, + left hand
-
-	worldCoords = m.preMult(f[1]->fingerTip);
-	return worldCoords;
+	return getWorldCoord(f[1]->fingerTip, origin);
 }
 
-ofPoint ofxHandModel::getWorldCoord(ofPoint localPoint, ofPoint translateOrigin)
+ofPoint ofxHandModel::getWorldCoord(ofPoint localPoint, ofPoint localOrigin)
 {
 	ofPoint worldPoint;
 	ofMatrix4x4 m;
-
-	m.glTranslate(translateOrigin.x, translateOrigin.y, translateOrigin.z);
-
+	//m.glTranslate(localOrigin.x, localOrigin.y, localOrigin.z);
+	m.glTranslate(localOrigin);
 	//Extract the rotation from the current rotation
     float angle; ofVec3f axis;  
     curRot.getRotate(angle, axis);  
@@ -535,85 +459,41 @@ ofPoint ofxHandModel::getWorldCoord(ofPoint localPoint, ofPoint translateOrigin)
 	return worldPoint;
 }
 
-vector<ofPoint> ofxHandModel::getFingerWorldCoord(int index)
+void ofxHandModel::getFingerWorldCoord(int index, vector<ofPoint> &_joints)
 {
 	// safety, we return index finger coords if index exceeded
-	if(index < 0 || index >= NUM_FINGERS)
-		index = 1;
-
-	vector<ofPoint> joints;
-
-	ofMatrix4x4 m;
-	m.glTranslate(origin.x, origin.y, origin.z);
-	
-	//Extract the rotation from the current rotation
-    float angle; ofVec3f axis; 
-    curRot.getRotate(angle, axis);  
-	m.glRotate(angle, axis.x, axis.y, axis.z);  //apply the quaternion's rotation
-	m.glScale(scaling.x, scaling.y, scaling.z); // - right hand, + left hand
-
-	joints.push_back(m.preMult(f[index]->root.origin));
-	joints.push_back(m.preMult(f[index]->mid.origin));
-	joints.push_back(m.preMult(f[index]->top.origin));
-	joints.push_back(m.preMult(f[index]->fingerTip));
-
-	return joints;
+	if(index < 0 || index >= NUM_FINGERS) index = 1;
+	_joints.push_back(getWorldCoord(f[index]->root.origin, origin));
+	_joints.push_back(getWorldCoord(f[index]->mid.origin, origin));
+	_joints.push_back(getWorldCoord(f[index]->top.origin, origin));
+	_joints.push_back(getWorldCoord(f[index]->fingerTip, origin));
 }
 
-
-vector<ofPoint> ofxHandModel::getFillWorldCoord()
+void ofxHandModel::getFillWorldCoord(vector<ofPoint> &_vertices)
 {
-	vector<ofPoint> fillPoints;
+	_vertices.push_back(getWorldCoord(ofPoint(f[0]->mid.origin.x, f[0]->mid.origin.y, f[0]->mid.origin.z), origin));
+	_vertices.push_back(getWorldCoord(f[1]->root.origin, origin));
 
-	ofMatrix4x4 m;
-	m.glTranslate(origin.x, origin.y, origin.z);
+	_vertices.push_back(getWorldCoord(f[3]->root.origin, origin));
+	_vertices.push_back(getWorldCoord(ofPoint(f[0]->root.origin.x, f[0]->root.origin.y, f[3]->root.origin.z), origin));
 
-	//Extract the rotation from the current rotation
-    float angle; ofVec3f axis;  
-    curRot.getRotate(angle, axis);  
-	m.glRotate(angle, axis.x, axis.y, axis.z);  //apply the quaternion's rotation 
-	m.glScale(scaling.x, scaling.y, scaling.z); // - right hand, + left hand (x axis?)
+	_vertices.push_back(getWorldCoord(f[2]->root.origin, origin));
+	_vertices.push_back(getWorldCoord(ofPoint(f[0]->root.origin.x, f[0]->root.origin.y, f[2]->root.origin.z), origin));
 
-	fillPoints.push_back(m.preMult(ofPoint(f[0]->mid.origin.x, f[0]->mid.origin.y, f[0]->mid.origin.z)));
-	fillPoints.push_back(m.preMult(f[1]->root.origin));
+	_vertices.push_back(getWorldCoord(f[1]->root.origin, origin));
+	_vertices.push_back(getWorldCoord(ofPoint(f[0]->root.origin.x, f[0]->root.origin.y, f[1]->root.origin.z), origin));
 
-	fillPoints.push_back(m.preMult(f[3]->root.origin));
-	fillPoints.push_back(m.preMult(ofPoint(f[0]->root.origin.x, f[0]->root.origin.y, f[3]->root.origin.z)));
+	_vertices.push_back(getWorldCoord(ofPoint(f[0]->root.origin.x, f[0]->root.origin.y, f[1]->root.origin.z), origin));
+	_vertices.push_back(getWorldCoord(ofPoint(f[0]->root.origin.x, f[0]->root.origin.y+20, 0), origin));
 
-	fillPoints.push_back(m.preMult(f[2]->root.origin));
-	fillPoints.push_back(m.preMult(ofPoint(f[0]->root.origin.x, f[0]->root.origin.y, f[2]->root.origin.z)));
+	_vertices.push_back(getWorldCoord(ofPoint(f[0]->root.origin.x, f[0]->root.origin.y+20, 0), origin));
+	_vertices.push_back(getWorldCoord(ofPoint(f[0]->root.origin.x, f[0]->root.origin.y, f[4]->root.origin.z), origin));
 
-	fillPoints.push_back(m.preMult(f[1]->root.origin));
-	fillPoints.push_back(m.preMult(ofPoint(f[0]->root.origin.x, f[0]->root.origin.y, f[1]->root.origin.z)));
-
-	fillPoints.push_back(m.preMult(ofPoint(f[0]->root.origin.x, f[0]->root.origin.y, f[1]->root.origin.z)));
-	fillPoints.push_back(m.preMult(ofPoint(f[0]->root.origin.x, f[0]->root.origin.y+20, 0)));
-
-	fillPoints.push_back(m.preMult(ofPoint(f[0]->root.origin.x, f[0]->root.origin.y+20, 0)));
-	fillPoints.push_back(m.preMult(ofPoint(f[0]->root.origin.x, f[0]->root.origin.y, f[4]->root.origin.z)));
-	
-	fillPoints.push_back(m.preMult(ofPoint(f[0]->root.origin.x, f[0]->root.origin.y, f[4]->root.origin.z)));
-	fillPoints.push_back(m.preMult(f[4]->root.origin));
-
-	return fillPoints;
+	_vertices.push_back(getWorldCoord(ofPoint(f[0]->root.origin.x, f[0]->root.origin.y, f[4]->root.origin.z), origin));
+	_vertices.push_back(getWorldCoord(f[4]->root.origin, origin));
 }
 
 void ofxHandModel::restoreFrom(ofxFingerParameters _localParams, bool _includeAngleX) {
-	/* // to be included (setting left, right swing angles)
-	f[1]->root.angleX = _localParams.fx1;
-	f[2]->root.angleX = _localParams.fx2;
-	f[3]->root.angleX = _localParams.fx3;
-	f[4]->root.angleX = _localParams.fx4;
-	*/
-	/*
-	f[1]->root.angleZ = _localParams.fz1;
-	f[2]->root.angleZ = _localParams.fz2;
-	f[3]->root.angleZ = _localParams.fz3;
-	f[4]->root.angleZ = _localParams.fz4;
-
-	f[0]->root.angleX = _localParams.tx;
-	f[0]->root.angleZ = _localParams.tz;
-	*/
 	// proper way of setting angles, cause internal update is needed
 	// (propagation of angle values towards finger tip segments)
 	f[1]->setAngleZ(_localParams.fz1);
@@ -630,8 +510,7 @@ void ofxHandModel::restoreFrom(ofxFingerParameters _localParams, bool _includeAn
 		f[3]->setAngleX(_localParams.fx3);
 		f[4]->setAngleX(_localParams.fx4);
 	}
-
-	update();
+	update(); // needed to update mesh?
 }
 
 ofxFingerParameters	ofxHandModel::saveFingerParameters() {
@@ -647,27 +526,12 @@ ofxFingerParameters	ofxHandModel::saveFingerParameters() {
 	p.fx3 = f[3]->root.angleX;
 	p.fx4 = f[4]->root.angleX;
 
-//	p.params = 0;
-/*
-// front and back thumb swing
-#define THUMB_MIN_ANGLE_Z		   0
-#define THUMB_MAX_ANGLE_Z		  20
-
-// define other fingers front and back swing limits (actual angle of first segment, value is then propagated to others)
-#define FINGER_MIN_ANGLE_Z	 0
-#define FINGER_MAX_ANGLE_Z	90
-*/
-	// thumb
-	if(p.tx < 45 && p.tz < 10)
-		p.params += 1;
-	if(p.fz1 < 45)
-		p.params += 2;
-	if(p.fz2 < 45)
-		p.params += 4;
-	if(p.fz3 < 45)
-		p.params += 8;
-	if(p.fz4 < 45)
-		p.params += 16;
+	// generate finger mask
+	if(p.tx < 45 && p.tz < 10) p.params += 1;
+	if(p.fz1 < 45) p.params += 2;
+	if(p.fz2 < 45) p.params += 4;
+	if(p.fz3 < 45) p.params += 8;
+	if(p.fz4 < 45) p.params += 16;
 	
 	return p;
 }
@@ -719,13 +583,10 @@ void ofxHandModel::narrow(float _factor, short _mask) {
 	spread(1 - _factor, _mask);
 }
 
-void ofxHandModel::interpolateParam(float &_desired, float &_prev, float _smooth) {
-	_desired = _prev + ((_desired - _prev)*_smooth);
+void ofxHandModel::interpolateParam(float &_desired, float &_prev, float _weight) {
+	_desired = _prev + ((_desired - _prev)*_weight);
 }
 
-// TODO: not functional at the moment 
-// (should be realized similarly in a way that is 
-// implemented in BezierConnection class - so no timers are used)
 void ofxHandModel::interpolate(ofxFingerParameters _to, short _mask) {
 	ofxFingerParameters prevParams = saveFingerParameters();
 	ofxFingerParameters newParams;
@@ -785,42 +646,15 @@ void ofxHandModel::interpolate(ofxFingerParameters _to, short _mask) {
 	//rollAngle = prevRollAngle + ((rollAngle - prevRollAngle)*0.5f); // smoothing
 }
 
-void ofxHandModel::setScale(float _factor) {
-	scaling.set(_factor);
-}
+void ofxHandModel::setScale(float _factor) { scaling.set(_factor); }
+void ofxHandModel::setScale(ofPoint _scale) { scaling.set(_scale); }
+ofPoint& ofxHandModel::getScaleRef() { return scaling; }
+ofPoint ofxHandModel::getScale() { return scaling; }
 
-void ofxHandModel::setScale(ofPoint _scale) {
-	scaling.set(_scale);
-}
+void ofxHandModel::setOrigin(ofPoint _origin) { origin.set(_origin); }
+ofPoint& ofxHandModel::getOriginRef() {	return origin; }
+ofPoint ofxHandModel::getOrigin() { return origin; }
 
-ofPoint& ofxHandModel::getScaleRef() {
-	return scaling;
-}
-
-ofPoint ofxHandModel::getScale() {
-	return scaling;
-}
-
-void ofxHandModel::setOrigin(ofPoint _origin) {
-	origin.set(_origin);
-}
-
-ofPoint& ofxHandModel::getOriginRef() {
-	return origin;
-}
-
-ofPoint ofxHandModel::getOrigin() {
-	return origin;
-}
-
-void ofxHandModel::setRotation(ofQuaternion _rotation) {
-	curRot.set(_rotation);
-}
-
-ofQuaternion& ofxHandModel::getRotationRef() {
-	return curRot;
-}
-
-ofQuaternion ofxHandModel::getRotation() {
-	return curRot;
-}
+void ofxHandModel::setRotation(ofQuaternion _rotation) { curRot.set(_rotation); }
+ofQuaternion& ofxHandModel::getRotationRef() { return curRot; }
+ofQuaternion ofxHandModel::getRotation() { return curRot; }

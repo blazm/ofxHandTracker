@@ -19,12 +19,12 @@ static const int FIXED_KERNEL = 2;
 
 #define IMG_DIM	150.0 
 #define FIXED_SCALE 0.3 
-#define FIXED_KERNEL 4  
+#define FIXED_KERNEL 4 
 /*
 #define IMG_DIM	100.0 
 #define FIXED_SCALE 0.2 
 #define FIXED_KERNEL 2 
-
+/*
 #define IMG_DIM	50.0
 #define FIXED_SCALE 0.1 
 #define FIXED_KERNEL 0

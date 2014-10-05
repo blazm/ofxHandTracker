@@ -27,7 +27,7 @@ class ofxHandTracker
 		void update();
 		void draw();
 
-	// getters 
+	    // getters 
 		ofxHandModel&	getHandModelRef();
 		vector<ofPoint> getActiveFingerTips();
 		int				getNumFingerTips();
@@ -43,6 +43,9 @@ class ofxHandTracker
 		void drawSideProjections(ofxCvGrayscaleImage &_tiny, ofPoint _position, int _size=10);
 		void findLines(ofxCvGrayscaleImage &_img, vector<ofVec4f> &_lines);
 		void filterLines(vector<ofVec4f> &_lines, ofPoint _position); // primitive O(n^2)
+
+		void generateCircles(vector<ofVec2f> &_nodes, ofxCvGrayscaleImage &_img, ofPoint _center, int _circleResolution, int _numCircles);
+
 	private:
 		// some filtering helpers
 		void filterMedian(ofxCvGrayscaleImage *i, int kernelSize);
@@ -131,23 +134,19 @@ class ofxHandTracker
 
 		// fingerTips counter
 		int		fingerTipsCounter;
-
 		vector<ofPoint>	activeFingerTips; // to get active fingertips outside of tracker for any use (for example drawing)
 
 		int		fTipHistory[FTIP_HIST_SIZE];
 		int		fTipLastInd;
 
-		//TODO: based on fTipHistory we can trigger events for grabbing, painting etc (for demo application & show usability)
-		//ofEvent<string>		grabEvent;
-		//ofEvent<string>		paintEvent; // not sure how will be used but ok
-	
+		// TODO: add events similar to mouse events: grabbed, released, moved, dragged + custom events (user defined OR gestures)
+
 		//TODO: we can check radius changes over time -> we will need maxRad & minRad vars, 
 		//		then we can check if radius very small, hand is probably facing kinect sideways
 
 		// contour analysis methods
 		void				analyzeContours(vector<ofPoint>	&_activeFingerTips); // populates passed vector with detected fingertips
 		void				drawContours(ofPoint _position = ofPoint::zero());
-
 
 		//helper methods // some of them should be private
 		bool				getTrackedPosition(ofPoint &_trackedPosition);

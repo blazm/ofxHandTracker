@@ -14,7 +14,7 @@ ofxHandTracker::ofxHandTracker(ofxUserGenerator *_userGen, ofxHandGenerator *_ha
 	depthGen = _depthGen;
 
 	hIndex = _hIndex;
-	h.setScale(.3);
+	h.setScale(.3); // TODO: normalise scaling
 	//h.scaling = ofPoint(.3,.3,.35);
 
 	// setup ofImages for generating / getting pixels
@@ -65,7 +65,6 @@ ofxHandTracker::ofxHandTracker(ofxUserGenerator *_userGen, ofxHandGenerator *_ha
 	tinyHandImg.allocate(TINY_IMG_DIM, TINY_IMG_DIM);
 	tinyModelImg.allocate(TINY_IMG_DIM, TINY_IMG_DIM);
 	tinyDiffImg.allocate(TINY_IMG_DIM, TINY_IMG_DIM);
-
 
 	shaderMatcher.setup(IMG_DIM, IMG_DIM);
 }
@@ -512,12 +511,6 @@ void ofxHandTracker::update() {
 			orientationVector += (pos - handRootCentroid);
 		}
 		ofPoint pos = handRootCentroid + orientationVector;
-		
-		glBegin(GL_LINES);
-		glColor4ub(255, 128, 0, 0);
-		glVertex3f(pos.x, pos.y, pos.z);
-		glVertex3f(handRootCentroid.x, handRootCentroid.y, handRootCentroid.z);
-		glEnd();
 		*/
 			
 		ofPoint dirDown = ofPoint(handCentroid.x, handCentroid.y+50, 0);
@@ -555,34 +548,15 @@ void ofxHandTracker::update() {
 		// check if hand facing sensor directly and rotate accordingly
 		// TODO: make smooth transition
 		if(rotVectorZ == ofPoint::zero()) {
-			//cout << rotVectorZ <<endl;
 			rollAngle = 0;
 			h.getRotationRef() *= ofQuaternion((-90), ofVec3f(1,0,0));
 		}
 		else {
 			float angle = angleOfVectors(downVector, rotVectorX, false);
-			//cout << "xangle: " << angle << endl;
 			h.getRotationRef() *= ofQuaternion((180+angle), ofVec3f(1,0,0));
 		}
 
-		//h.curRot *= ofQuaternion((angleInDegreesXY), ofVec3f(0,0,1));
 		h.getRotationRef() *= ofQuaternion((rollAngle), ofVec3f(0,0,1));
-		
-		/*
-		//x = (maxZ - minZ);
-		x = (handCentroid.z - handRootCentroid.z);
-		
-		double angleInRadiansZY = std::atan2(y, x);
-		double angleInDegreesZY = (angleInRadiansZY * 180/PI) + 90;
-		
-		//h.curRot *= ofQuaternion((angleInDegreesZY), ofVec3f(1,0,0));
-		*/
-		
-		// maybe scaling like this?
-		//realImg.setAnchorPercent(0.5, 0.5);
-		//realImg.resize();
-		//realImg.crop();
-
 		h.update();
 		
 		//generateModelProjection();
@@ -662,47 +636,6 @@ void ofxHandTracker::update() {
 	}
 	realImg.update();
 	*/
-	
-		/*handMask.setFromPixels(depthGen.getDepthPixels(zz-100, zz+100),
-							   depthGen.getWidth(), 
-							   depthGen.getHeight(), 
-							   OF_IMAGE_GRAYSCALE);*/
-
-		//handMask.setFromPixels(userGen.getUserPixels(), userGen.getWidth(), userGen.getHeight(), OF_IMAGE_GRAYSCALE);
-			
-		/*handMask.setFromPixels(depthGen.getDepthPixels(zz-120, zz+120),
-						depthGen.getWidth(), 
-						depthGen.getHeight(), 
-						OF_IMAGE_GRAYSCALE);*/
-
-		//if(thresh != 0)
-		
-		// temporary calling convex hull methods
-		/*if(handEdgePoints.size() > 0) {
-		//if(filteredMaxHandPoints.size() > 5) {
-			//ofPoint pivot = ofPoint(maxDistRootPoint);
-			ofPoint pivot = ofPoint(xx-bbMinX, yy+bbMaxY, 0);
-
-			//pivot = ofPoint(minX, maxY, handCentroid.z);
-			vector<ofPoint> convexHull = getConvexHull(handEdgePoints, pivot);
-
-			//cout << "EDGE SIZE: " << handEdgePoints.size() << "\nHULL SIZE: " << convexHull.size() << endl;
-
-			drawOfPointVector(convexHull);
-			drawOfPointVectorFromCenter(convexHull, handCentroid);
-		}
-		*/
-
-		// calc another angle
-		/*double y2 = (handCentroid.y - handRootCentroid.y);
-		double z = (handCentroid.z - handRootCentroid.z);
-		double angleInRadiansYZ = std::atan2(y2, z);
-	    double angleInDegreesYZ = (angleInRadiansYZ / PI) * 180.0 + 90;
-		h.curRot *= ofQuaternion((angleInDegreesYZ), ofVec3f(1,0,0));
-		*/
-
-		//float handAngle = atan2(maxDistCentroidPoint.x-maxDistOppositePoint.x, maxDistCentroidPoint.y-maxDistOppositePoint.y);
-		//float centroidDistance2D = sqrt(pow(handCentroid.x - handRootCentroid.x,2) + pow(handCentroid.y - handRootCentroid.y,2));
 	}
 }
 
@@ -1046,6 +979,24 @@ void ofxHandTracker::draw() {
 	ofDrawBitmapString("CV Skeleton Blobs:", 800, 460);
 	drawRegionSkeletons(handSkeleton, ofPoint(800, 480));
 
+	/* 
+	// TODO: improve circular sampling and generate skeleton graph?
+	vector<ofVec2f> nodes;
+	generateCircles(nodes, handSkeleton, palmCenter, 90, 6);
+	handSkeleton.draw(600, 480, 200, 200);
+	ofDrawBitmapString("CV Region Skeleton:", 600, 460);
+
+	ofPushMatrix();
+	ofTranslate(600, 680);
+	ofSetColor(ofColor::yellow);
+	for (int i=0; i<nodes.size(); i++) {
+		ofVec2f &p = nodes.at(i);
+		ofRect(p - ofPoint(1,1), 2, 2);
+	} 
+	ofPopMatrix();
+	ofDrawBitmapString("Circle Nodes:", 600, 640);
+	*/
+
 	// draw model skeleton 
 	generateRegionSkeleton(modelImgCV, modelSkeleton);
 	modelSkeleton.draw(1000, 480, 200, 200);
@@ -1310,6 +1261,41 @@ void ofxHandTracker::generateRegionSkeleton(ofxCvGrayscaleImage &_img, ofxCvGray
 	_result.dilate();
 
 	filterMedian(&_result, 3);
+}
+
+void ofxHandTracker::generateCircles(vector<ofVec2f> &_nodes, ofxCvGrayscaleImage &_img, ofPoint _center, int _circleResolution, int _numCircles) {
+
+	ofPixels &pix = _img.getPixelsRef();
+
+	int maxRadius = _img.width*0.45;
+	int radDelta = maxRadius / _numCircles;
+
+	int *radiuses = new int[_numCircles];
+	for (int i=0; i<_numCircles; i++) radiuses[i] = (i+1) * radDelta;
+
+	float twoPI =  2*PI;
+	int circleResolution = _circleResolution;
+	float angDelta = twoPI / circleResolution; // angle diff in radians
+
+	for (int i=_numCircles-1; i >= 0; i--) {
+		for(int j=0; j<circleResolution; j++) {
+			int x = _center.x + radiuses[i] * cosf(angDelta * j); 
+			int y = _center.y + radiuses[i] * sinf(angDelta * j); 
+
+			if (pix.getColor(x, y).getBrightness() > 10) {
+				_nodes.push_back(ofVec2f(x,y));
+			}
+
+			pix.setColor(x, y, ofColor(128));
+		}
+
+		if (i > 0) circleResolution = _circleResolution*((float)(radiuses[i-1]*radiuses[i-1]) / (float)(radiuses[i]*radiuses[i]));
+		angDelta = twoPI / circleResolution;
+	}
+
+	pix.setColor(_center.x, _center.y, ofColor(128));
+
+	_img.updateTexture();
 }
 
 void ofxHandTracker::drawRegionSkeletons(ofxCvGrayscaleImage &_img, ofPoint _position) {
@@ -1753,7 +1739,6 @@ void ofxHandTracker::findParamsOptimum(ofxHandModel &_h,
 			//float matching = getImageMatching(modelImg, shaderMatcher.imagesAbsDiff(modelImg, realImg));
 			float matching = getImageMatchingV2(_hand, _model, _diff);
 
-
 			if(matching < bestMatching) 
 			//if(matching < bestMatching && matching > 0.01)
 			{
@@ -1782,7 +1767,6 @@ void ofxHandTracker::findParamsOptimum(int _params[], int _size) {
 		//float matching = shaderMatcher.matchImages(modelImg, realImg);
 		//float matching = getImageMatching(modelImg, shaderMatcher.imagesAbsDiff(modelImg, realImg));
 		float matching = getImageMatchingV2(handSkeleton, modelSkeleton, tinyDiffImg);
-
 
 		if(matching > bestMatching) 
 		//if(matching < bestMatching && matching > 0.01)
@@ -1876,26 +1860,11 @@ void ofxHandTracker::findParamsOptimum(int _paramsZ[], int _sizeZ, ofxFingerPara
 
 
 //------------------------- helper methods -------------------------------------
-// here maybe rather than void we should return generated image directly?
-void ofxHandTracker::generateModelProjection() {
-	//ofPoint backupScaling = h.getScale();
-	// rescale model, so it fits better to real hand depth image
-	// 0.6 downscales the actual scaling range (from 0 - 1 to 0 - 0.6),
-	// - 0.15 adds some startup scaling, so model is not underscaled 
-	//h.scaling -= ((getHandDepth(activeHandPos.z)*0.6) - 0.15); 
-
-	//h.setScale(backupScaling - ((getHandDepth(activeHandPos.z)*0.6) - 0.15));
-
+void ofxHandTracker::generateModelProjection() { // TODO: pass model img by reference?
 	palmCenter.z = 0;
-	h.getProjection(modelImg, palmCenter); //palmCenter, 6*(1-getHandDepth(activeHandPos.z))
-	//modelImg = h.getProjection();
+	h.getProjection(modelImg, palmCenter);
 	modelImg.setImageType(OF_IMAGE_GRAYSCALE);
 	modelImgCV.setFromPixels(modelImg);
-		
-	//h.setScale(backupScaling);
-	
-	//modelImgCV.dilate();
-	//modelImgCV.erode();
 }
 
 float ofxHandTracker::getImageMatchingV2(ofxCvGrayscaleImage &realImage, 
@@ -1920,10 +1889,7 @@ float ofxHandTracker::getImageMatchingV2(ofxCvGrayscaleImage &realImage,
 float ofxHandTracker::getImageMatching(ofxCvGrayscaleImage &realImage, 
 									ofxCvGrayscaleImage &modelImage,  
 									ofxCvGrayscaleImage &differenceImage) {
-					
-	//ofPixels realPixels = realImage.getPixelsRef();
-	//realPixels[0]
-
+    
 	unsigned char *real = realImage.getPixels();
 	//unsigned char *model = modelImage.getPixels();
 
@@ -2021,27 +1987,15 @@ float ofxHandTracker::getImageMatching(ofxCvGrayscaleImage &realImage,
 }*/
 
 ofPoint ofxHandTracker::getCentroid(vector<ofPoint> &points){
-		float centroidX = 0, centroidY = 0, centroidZ = 0;
+		
+	ofPoint centroid;
+	for(std::vector<ofPoint>::iterator it = points.begin(); it != points.end(); ++it) {
+		ofPoint &p = *it; centroid += p;
+	}
 
-		// calculating of centroid
-		for(std::vector<ofPoint>::iterator it = points.begin(); it != points.end(); ++it) {
-			/* std::cout << *it; ... */
-			ofPoint &p = *it;
-			centroidX += p.x;
-			centroidY += p.y;
-			centroidZ += p.z;
-		}
-
-		if(points.size() > 0) {
-			centroidX /= points.size();
-			centroidY /= points.size();
-			centroidZ /= points.size();
-		}
-
-		ofPoint centroid = ofPoint(centroidX, centroidY, centroidZ);
-		return centroid;
+	if(points.size() > 0) centroid /= points.size();
+	return centroid;
 }
-
 
 //Bitmap/Bresenham's line algorithm - source: http://rosettacode.org/wiki/Bitmap/Bresenham's_line_algorithm#C
 /*void ofxHandTracker::drawLine(ofImage *img, int x0, int y0, int z0, int x1, int y1, int z1) {
@@ -2086,18 +2040,9 @@ ofPoint ofxHandTracker::getCentroid(vector<ofPoint> &points){
 }*/
 
 // section with methods which provide useful data from tracker
-
-vector<ofPoint> ofxHandTracker::getActiveFingerTips() {
-	return activeFingerTips;
-}
-
-ofxHandModel& ofxHandTracker::getHandModelRef() {
-	return h;
-}
-
-int	ofxHandTracker::getNumFingerTips() {
-	return fingerTipsCounter;
-}
+vector<ofPoint> ofxHandTracker::getActiveFingerTips() {	return activeFingerTips; }
+ofxHandModel& ofxHandTracker::getHandModelRef() { return h; }
+int	ofxHandTracker::getNumFingerTips() { return fingerTipsCounter; }
 
 /*
 void ofxHandTracker::drawLine(ofImage *img, int x1, int y1, int z1, int x2, int y2, int z2)

@@ -63,10 +63,7 @@ ofxFingerModel::ofxFingerModel(void)
 	top.update();
 }
 
-
-ofxFingerModel::~ofxFingerModel(void)
-{
-}
+ofxFingerModel::~ofxFingerModel(void){}
 
 void ofxFingerModel::update(){
 	palm.update();
@@ -96,26 +93,10 @@ void ofxFingerModel::draw()
 
 void ofxFingerModel::keyPressed(int key){
 
-	//cout << "Angle:" << root.angleZ << "name: " << name << endl;
-
 	if(key == '+' && getAngleZ() < FINGER_MAX_ANGLE_Z) {
-		/*
-		root.angleZ += angleDiff;
-		mid.angleZ += 2*angleDiff;
-		mid.update();
-		top.angleZ += 3*angleDiff;
-		top.update();
-		*/
 		setAngleZ(getAngleZ() + angleDiff);
 	}
 	else if(key == '-' && getAngleZ() > FINGER_MIN_ANGLE_Z /*-PI/2*/) {
-		/*
-		root.angleZ -= angleDiff;
-		mid.angleZ -= 2*angleDiff;
-		mid.update();
-		top.angleZ -= 3*angleDiff;
-		top.update();
-		*/
 		setAngleZ(getAngleZ() - angleDiff);
 	}
 

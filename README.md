@@ -24,7 +24,7 @@ The code in this repository is available under the [CC BY-SA 2.5 License] (http:
 Images
 --------------
 
-![Hand Model example](/screens/Screenshot%202014-08-22%2023.33.28.png?raw=true "(kinect not required)")
+![Hand Model example](/screens/Screenshot%202014-10-06%2020.47.56.png?raw=true "(kinect not required)")
 
 ![Tracking Features updated](/screens/Screenshot%202014-10-02%2022.19.46.png?raw=true "(kinect required)")
 

@@ -17,6 +17,16 @@ ofxHandTracker ported to oF 0.8.1 (available in branch 0.8.1).
 
 More useful info coming soon...
 
+
+Structure
+--------------
+Addon is wrapped into ofxHT namespace. Include all components using ofxHT.h.
+
+ofxHT::HandTracker <- Tracker component
+ofxHT::HandModel <- Model component
+ofxHT::Const:: <- constants
+...
+
 License
 --------------
 The code in this repository is available under the [CC BY-SA 2.5 License] (http://creativecommons.org/licenses/by-sa/2.5/)

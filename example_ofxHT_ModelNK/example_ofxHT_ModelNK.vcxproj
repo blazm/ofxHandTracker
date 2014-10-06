@@ -90,6 +90,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\FingerModel.cpp" />
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\FingerParameters.cpp" />
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\FingerSegment.cpp" />
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\HandModel.cpp" />
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ThumbModel.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ofApp.cpp" />
     <ClCompile Include="..\..\..\addons\ofxGui\src\ofxBaseGui.cpp" />
@@ -100,15 +105,14 @@
     <ClCompile Include="..\..\..\addons\ofxGui\src\ofxSlider.cpp" />
     <ClCompile Include="..\..\..\addons\ofxGui\src\ofxSliderGroup.cpp" />
     <ClCompile Include="..\..\..\addons\ofxGui\src\ofxToggle.cpp" />
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxFingerModel.cpp" />
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxFingerParameters.cpp" />
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxFingerSegment.cpp" />
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxHandModel.cpp" />
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxThumbModel.cpp" />
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxUtilityTimer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\FixedParameters.h" />
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\FingerModel.h" />
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\FingerParameters.h" />
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\FingerSegment.h" />
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\HandModel.h" />
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ThumbModel.h" />
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\TrackerConstants.h" />
     <ClInclude Include="src\ofApp.h" />
     <ClInclude Include="..\..\..\addons\ofxGui\src\ofxBaseGui.h" />
     <ClInclude Include="..\..\..\addons\ofxGui\src\ofxButton.h" />
@@ -119,13 +123,6 @@
     <ClInclude Include="..\..\..\addons\ofxGui\src\ofxSlider.h" />
     <ClInclude Include="..\..\..\addons\ofxGui\src\ofxSliderGroup.h" />
     <ClInclude Include="..\..\..\addons\ofxGui\src\ofxToggle.h" />
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxFingerModel.h" />
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxFingerParameters.h" />
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxFingerSegment.h" />
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxHandModel.h" />
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxImageMatcher.h" />
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxThumbModel.h" />
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxUtilityTimer.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\libs\openFrameworksCompiled\project\vs\openframeworksLib.vcxproj">

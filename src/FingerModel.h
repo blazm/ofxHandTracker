@@ -1,19 +1,18 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxFingerSegment.h"
-#include "ofxFingerParameters.h"
+#include "FingerSegment.h"
+#include "FingerParameters.h"
 
-static float _GOLDEN_RATIO = 1.618f; //033988749894848204586834;
-static float _GOLDEN_RATIO_x2 = _GOLDEN_RATIO * _GOLDEN_RATIO;
-static float _GOLDEN_RATIO_x3 = _GOLDEN_RATIO_x2 * _GOLDEN_RATIO;
+namespace ofxHT {
+	using namespace Const;
 
-class ofxFingerModel
+class FingerModel
 {
 	public:
-		ofxFingerModel(ofPoint origin);
-		ofxFingerModel(void);
-		~ofxFingerModel(void);
+		FingerModel(ofPoint origin);
+		FingerModel(void);
+		~FingerModel(void);
 
 		virtual void update();
 		virtual void draw();
@@ -30,13 +29,14 @@ class ofxFingerModel
 		virtual void setAngleX(float _angle);
 		virtual float getAngleX();
 
-		ofxFingerSegment palm; // segment inside palm
-		ofxFingerSegment root;
-		ofxFingerSegment mid;
-		ofxFingerSegment top;
+		FingerSegment palm; // segment inside palm
+		FingerSegment root;
+		FingerSegment mid;
+		FingerSegment top;
 		
 		ofPoint fingerTip; 
 
 		float angleDiff;
 };
 
+}

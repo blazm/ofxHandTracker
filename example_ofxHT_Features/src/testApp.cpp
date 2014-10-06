@@ -46,8 +46,8 @@ void testApp::setup(){
 	oniContext.toggleRegisterViewport();
 	oniContext.toggleMirror();
 
-	tracker = new ofxHandTracker(&userGen, &handGen, &depthGen, 0);
-	//tracker2 = new ofxHandTracker(&userGen, &handGen, &depthGen, 1); // use when code is ready to track and handle multiple hands
+	tracker = new ofxHT::HandTracker(&userGen, &handGen, &depthGen, 0);
+	//tracker2 = new ofxHT::HandTracker(&userGen, &handGen, &depthGen, 1); // use when code is ready to track and handle multiple hands
 #endif
 }
 

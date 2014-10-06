@@ -1,15 +1,17 @@
-#include "ofxHandModel.h"
+#include "HandModel.h"
 
-ofxHandModel::ofxHandModel(void)
+namespace ofxHT {
+
+HandModel::HandModel(void)
 {
 	origin = ofPoint();
 	scaling = ofPoint(FIXED_SCALE);
 
-	f[1] = new ofxFingerModel(ofPoint(0, -80+40-60, 75));
-	f[2] = new ofxFingerModel(ofPoint(0, -100+40-60, 25));
-	f[3] = new ofxFingerModel(ofPoint(0, -90+40-60, -25));
-	f[4] = new ofxFingerModel(ofPoint(0, -70+40-60, -75));
-	f[0] = new ofxThumbModel(f[1]->root.origin - ofPoint(0, f[1]->palm.length, 0));
+	f[1] = new FingerModel(ofPoint(0, -80+40-60, 75));
+	f[2] = new FingerModel(ofPoint(0, -100+40-60, 25));
+	f[3] = new FingerModel(ofPoint(0, -90+40-60, -25));
+	f[4] = new FingerModel(ofPoint(0, -70+40-60, -75));
+	f[0] = new ThumbModel(f[1]->root.origin - ofPoint(0, f[1]->palm.length, 0));
 
 	f[1]->root.angleX = 11;
 	f[2]->root.angleX = 0;
@@ -49,7 +51,7 @@ ofxHandModel::ofxHandModel(void)
 }
 
 
-ofxHandModel::~ofxHandModel(void)
+HandModel::~HandModel(void)
 {
 	for(int i=0; i<NUM_FINGERS; i++) {
 		delete f[i];
@@ -57,7 +59,7 @@ ofxHandModel::~ofxHandModel(void)
 	}
 }
 
-void ofxHandModel::update()
+void HandModel::update()
 {
 	// update all fingers
 	for(int i=0; i<NUM_FINGERS; i++) {
@@ -135,14 +137,14 @@ void ofxHandModel::update()
 	scaling.set(s); // restore scaling
 }
 
-ofFloatColor ofxHandModel::getPointColor(ofPoint p) {
+ofFloatColor HandModel::getPointColor(ofPoint p) {
 	float lim = 45.0f;
 	ofPoint pc = getWorldCoord(p, origin);
 	ofFloatColor fc = ofFloatColor(((pc.z - (origin.z - 30))/lim)/2.0);
 	return fc;
 }
 
-void ofxHandModel::drawMesh() {
+void HandModel::drawMesh() {
 	glMatrixMode(GL_MODELVIEW);
 	
 	//ofEnableDepthTest(); // or
@@ -173,7 +175,7 @@ void ofxHandModel::drawMesh() {
 	glDisable(GL_DEPTH_TEST);
 }
 
-void ofxHandModel::draw() 
+void HandModel::draw() 
 {
 	/*
 	//ofQuaternion constructor: angle, ofVec3f axis
@@ -258,7 +260,7 @@ void ofxHandModel::draw()
 	glPopMatrix();
 }
 
-void ofxHandModel::drawProjection() 
+void HandModel::drawProjection() 
 {
 	glMatrixMode(GL_MODELVIEW);	
 	glPushMatrix();
@@ -312,7 +314,7 @@ void ofxHandModel::drawProjection()
 	glPopMatrix();
 }
 
-void ofxHandModel::drawFingerProjection(ofxFingerModel f) {
+void HandModel::drawFingerProjection(FingerModel f) {
 	glBegin(GL_LINES);
 
 	ofPoint hRootWorld = ofPoint(IMG_DIM/2, IMG_DIM/2, 0);
@@ -348,13 +350,13 @@ void ofxHandModel::drawFingerProjection(ofxFingerModel f) {
 	glEnd();
 }
 
-void ofxHandModel::getProjection(ofImage &_target, ofPoint _palmCenter, int _kernelSize) {
+void HandModel::getProjection(ofImage &_target, ofPoint _palmCenter, int _kernelSize) {
 	drawFboProjection(ofPoint(), _palmCenter, _kernelSize, false);
 	dilateFbo.readToPixels(projPix);
 	_target.setFromPixels(projPix);
 }
 
-void ofxHandModel::drawFboProjection(ofPoint _position, ofPoint _palmCenter, int _kernelSize, bool _draw) {
+void HandModel::drawFboProjection(ofPoint _position, ofPoint _palmCenter, int _kernelSize, bool _draw) {
 
 	ofPoint s = scaling;
 	scaling = ofPoint(FIXED_SCALE);
@@ -384,7 +386,7 @@ void ofxHandModel::drawFboProjection(ofPoint _position, ofPoint _palmCenter, int
 	if (_draw) dilateFbo.draw(_position);
 }
 
-void ofxHandModel::keyPressed(int key)
+void HandModel::keyPressed(int key)
 {
 	switch(key) {
 		// finger control keys
@@ -423,7 +425,7 @@ void ofxHandModel::keyPressed(int key)
 	}
 }
 
-void ofxHandModel::mouseDragged(int x, int y, int button){
+void HandModel::mouseDragged(int x, int y, int button){
 	//every time the mouse is dragged, track the change
 	//accumulate the changes inside of curRot through multiplication
     ofVec2f mouse(x,y);  
@@ -433,17 +435,17 @@ void ofxHandModel::mouseDragged(int x, int y, int button){
     lastMouse = mouse;  
 }
 
-void ofxHandModel::mousePressed(int x, int y, int button){
+void HandModel::mousePressed(int x, int y, int button){
     //store the last mouse point when it's first pressed to prevent popping
 	lastMouse = ofVec2f(x,y);
 }
 
-ofPoint ofxHandModel::getIndexFingerWorldCoord()
+ofPoint HandModel::getIndexFingerWorldCoord()
 {
 	return getWorldCoord(f[1]->fingerTip, origin);
 }
 
-ofPoint ofxHandModel::getWorldCoord(ofPoint localPoint, ofPoint localOrigin)
+ofPoint HandModel::getWorldCoord(ofPoint localPoint, ofPoint localOrigin)
 {
 	ofPoint worldPoint;
 	ofMatrix4x4 m;
@@ -459,7 +461,7 @@ ofPoint ofxHandModel::getWorldCoord(ofPoint localPoint, ofPoint localOrigin)
 	return worldPoint;
 }
 
-void ofxHandModel::getFingerWorldCoord(int index, vector<ofPoint> &_joints)
+void HandModel::getFingerWorldCoord(int index, vector<ofPoint> &_joints)
 {
 	// safety, we return index finger coords if index exceeded
 	if(index < 0 || index >= NUM_FINGERS) index = 1;
@@ -469,7 +471,7 @@ void ofxHandModel::getFingerWorldCoord(int index, vector<ofPoint> &_joints)
 	_joints.push_back(getWorldCoord(f[index]->fingerTip, origin));
 }
 
-void ofxHandModel::getFillWorldCoord(vector<ofPoint> &_vertices)
+void HandModel::getFillWorldCoord(vector<ofPoint> &_vertices)
 {
 	_vertices.push_back(getWorldCoord(ofPoint(f[0]->mid.origin.x, f[0]->mid.origin.y, f[0]->mid.origin.z), origin));
 	_vertices.push_back(getWorldCoord(f[1]->root.origin, origin));
@@ -493,7 +495,7 @@ void ofxHandModel::getFillWorldCoord(vector<ofPoint> &_vertices)
 	_vertices.push_back(getWorldCoord(f[4]->root.origin, origin));
 }
 
-void ofxHandModel::restoreFrom(ofxFingerParameters _localParams, bool _includeAngleX) {
+void HandModel::restoreFrom(FingerParameters _localParams, bool _includeAngleX) {
 	// proper way of setting angles, cause internal update is needed
 	// (propagation of angle values towards finger tip segments)
 	f[1]->setAngleZ(_localParams.fz1);
@@ -513,8 +515,8 @@ void ofxHandModel::restoreFrom(ofxFingerParameters _localParams, bool _includeAn
 	update(); // needed to update mesh?
 }
 
-ofxFingerParameters	ofxHandModel::saveFingerParameters() {
-	ofxFingerParameters p = ofxFingerParameters(f[1]->root.angleZ,
+FingerParameters	HandModel::saveFingerParameters() {
+	FingerParameters p = FingerParameters(f[1]->root.angleZ,
 										f[2]->root.angleZ,
 										f[3]->root.angleZ,
 										f[4]->root.angleZ,
@@ -536,14 +538,14 @@ ofxFingerParameters	ofxHandModel::saveFingerParameters() {
 	return p;
 }
 /*
-GlobalParameters ofxHandModel::saveGlobalParameters() {
+GlobalParameters HandModel::saveGlobalParameters() {
 	GlobalParameters p = GlobalParameters();
 	return p;
 }*/
 
-void ofxHandModel::close(float _factor, short _mask) {
+void HandModel::close(float _factor, short _mask) {
 	ofClamp(_factor, 0, 1);
-	ofxFingerParameters params = saveFingerParameters(); // so we already have current x angles
+	FingerParameters params = saveFingerParameters(); // so we already have current x angles
 	if ((_mask >> 1) & 1) params.fz1 = _factor * (FINGER_MAX_ANGLE_Z - FINGER_MIN_ANGLE_Z) + FINGER_MIN_ANGLE_Z;
 	if ((_mask >> 2) & 1) params.fz2 = _factor * (FINGER_MAX_ANGLE_Z - FINGER_MIN_ANGLE_Z) + FINGER_MIN_ANGLE_Z;
 	if ((_mask >> 3) & 1) params.fz3 = _factor * (FINGER_MAX_ANGLE_Z - FINGER_MIN_ANGLE_Z) + FINGER_MIN_ANGLE_Z;
@@ -556,14 +558,14 @@ void ofxHandModel::close(float _factor, short _mask) {
 	interpolate(params, _mask);
 }
 
-void ofxHandModel::open(float _factor, short _mask) {
+void HandModel::open(float _factor, short _mask) {
 	ofClamp(_factor, 0, 1);
 	close(1 - _factor, _mask);
 }
 
-void ofxHandModel::spread(float _factor, short _mask) {
+void HandModel::spread(float _factor, short _mask) {
 	ofClamp(_factor, 0, 1);
-	ofxFingerParameters params = saveFingerParameters(); // so we already have current z angles
+	FingerParameters params = saveFingerParameters(); // so we already have current z angles
 	if ((_mask >> 1) & 1) params.fx1 = _factor * (FINGER_1_MAX_ANGLE_X - FINGER_1_MIN_ANGLE_X) + FINGER_1_MIN_ANGLE_X;
 	if ((_mask >> 2) & 1) params.fx2 = _factor * (FINGER_2_MAX_ANGLE_X - FINGER_2_MIN_ANGLE_X) + FINGER_2_MIN_ANGLE_X;
 	if ((_mask >> 3) & 1) params.fx3 = _factor * (FINGER_3_MAX_ANGLE_X - FINGER_3_MIN_ANGLE_X) + FINGER_3_MIN_ANGLE_X;
@@ -578,18 +580,18 @@ void ofxHandModel::spread(float _factor, short _mask) {
 	interpolate(params, _mask);
 }
 
-void ofxHandModel::narrow(float _factor, short _mask) {
+void HandModel::narrow(float _factor, short _mask) {
 	ofClamp(_factor, 0, 1);
 	spread(1 - _factor, _mask);
 }
 
-void ofxHandModel::interpolateParam(float &_desired, float &_prev, float _weight) {
+void HandModel::interpolateParam(float &_desired, float &_prev, float _weight) {
 	_desired = _prev + ((_desired - _prev)*_weight);
 }
 
-void ofxHandModel::interpolate(ofxFingerParameters _to, short _mask) {
-	ofxFingerParameters prevParams = saveFingerParameters();
-	ofxFingerParameters newParams;
+void HandModel::interpolate(FingerParameters _to, short _mask) {
+	FingerParameters prevParams = saveFingerParameters();
+	FingerParameters newParams;
 	desiredParams = _to;
 
 	// TODO: in parameters include operator +, - to simplify that kind of operations
@@ -646,15 +648,17 @@ void ofxHandModel::interpolate(ofxFingerParameters _to, short _mask) {
 	//rollAngle = prevRollAngle + ((rollAngle - prevRollAngle)*0.5f); // smoothing
 }
 
-void ofxHandModel::setScale(float _factor) { scaling.set(_factor); }
-void ofxHandModel::setScale(ofPoint _scale) { scaling.set(_scale); }
-ofPoint& ofxHandModel::getScaleRef() { return scaling; }
-ofPoint ofxHandModel::getScale() { return scaling; }
+void HandModel::setScale(float _factor) { scaling.set(_factor); }
+void HandModel::setScale(ofPoint _scale) { scaling.set(_scale); }
+ofPoint& HandModel::getScaleRef() { return scaling; }
+ofPoint HandModel::getScale() { return scaling; }
 
-void ofxHandModel::setOrigin(ofPoint _origin) { origin.set(_origin); }
-ofPoint& ofxHandModel::getOriginRef() {	return origin; }
-ofPoint ofxHandModel::getOrigin() { return origin; }
+void HandModel::setOrigin(ofPoint _origin) { origin.set(_origin); }
+ofPoint& HandModel::getOriginRef() {	return origin; }
+ofPoint HandModel::getOrigin() { return origin; }
 
-void ofxHandModel::setRotation(ofQuaternion _rotation) { curRot.set(_rotation); }
-ofQuaternion& ofxHandModel::getRotationRef() { return curRot; }
-ofQuaternion ofxHandModel::getRotation() { return curRot; }
+void HandModel::setRotation(ofQuaternion _rotation) { curRot.set(_rotation); }
+ofQuaternion& HandModel::getRotationRef() { return curRot; }
+ofQuaternion HandModel::getRotation() { return curRot; }
+
+}

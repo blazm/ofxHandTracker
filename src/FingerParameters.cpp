@@ -1,5 +1,7 @@
 #include <iostream>
-#include "ofxFingerParameters.h"
+#include "FingerParameters.h"
+
+namespace ofxHT {
 
 /* DEPRECATED:
 Parameters::Parameters(void)
@@ -33,9 +35,9 @@ DiscreteLocalParameters::DiscreteLocalParameters(int _params) {
 }
 */
 
-ofxFingerParameters ofxFingerParameters::operator+(const ofxFingerParameters&  other)
+FingerParameters FingerParameters::operator+(const FingerParameters&  other)
 {
-	ofxFingerParameters temp;
+	FingerParameters temp;
 
 	temp.fz1 = fz1 + other.fz1;
 	temp.fz2 = fz2 + other.fz2;
@@ -54,7 +56,7 @@ ofxFingerParameters ofxFingerParameters::operator+(const ofxFingerParameters&  o
 
 	return temp;
 
-	/*return ofxFingerParameters(fz1 + other.fz1,
+	/*return FingerParameters(fz1 + other.fz1,
 						   fz2 + other.fz2,
 						   fz3 + other.fz3,
 						   fz4 + other.fz4,
@@ -63,9 +65,9 @@ ofxFingerParameters ofxFingerParameters::operator+(const ofxFingerParameters&  o
 						   */
 }
 
-ofxFingerParameters ofxFingerParameters::operator-(const ofxFingerParameters&  other)
+FingerParameters FingerParameters::operator-(const FingerParameters&  other)
 {
-	return ofxFingerParameters(fz1 - other.fz1,
+	return FingerParameters(fz1 - other.fz1,
 						   fz2 - other.fz2,
 						   fz3 - other.fz3,
 						   fz4 - other.fz4,
@@ -73,9 +75,9 @@ ofxFingerParameters ofxFingerParameters::operator-(const ofxFingerParameters&  o
 						   tz - other.tz);
 }
 
-ofxFingerParameters ofxFingerParameters::operator*(const float factor)
+FingerParameters FingerParameters::operator*(const float factor)
 {
-	return ofxFingerParameters(fz1*factor,
+	return FingerParameters(fz1*factor,
 						   fz2*factor,
 						   fz3*factor,
 						   fz4*factor,
@@ -83,7 +85,7 @@ ofxFingerParameters ofxFingerParameters::operator*(const float factor)
 						   tz*factor);
 }
 /*
-ofxFingerParameters& ofxFingerParameters::operator=(const ofxFingerParameters&  other)
+FingerParameters& FingerParameters::operator=(const FingerParameters&  other)
 {
 	// Do the assignment operation!
 	this->fx1 = other.fx1;
@@ -104,7 +106,7 @@ ofxFingerParameters& ofxFingerParameters::operator=(const ofxFingerParameters&  
 }*/
 
 
-/*ostream & operator<<(ostream & leftOp, ofxFingerParameters & rightOp)
+/*ostream & operator<<(ostream & leftOp, FingerParameters & rightOp)
 {
 	// Print the data members of rightOp using leftOp like you would using cout
    
@@ -113,7 +115,7 @@ ofxFingerParameters& ofxFingerParameters::operator=(const ofxFingerParameters&  
 	return leftOp;     
 }
 
-ofLog & operator<<(ofLog & leftOp, ofxFingerParameters &rightOp)
+ofLog & operator<<(ofLog & leftOp, FingerParameters &rightOp)
 {
 	// Print the data members of rightOp using leftOp like you would using cout
    
@@ -121,3 +123,5 @@ ofLog & operator<<(ofLog & leftOp, ofxFingerParameters &rightOp)
 	leftOp << "Z: " << rightOp.fz1 << ',' << rightOp.fz2 << ',' << rightOp.fz3 << ',' << rightOp.fz4 << ',' << '\n' << endl;
 	return leftOp;     
 }*/
+
+}

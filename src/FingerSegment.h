@@ -2,12 +2,14 @@
 
 #include "ofMain.h"
 
-class ofxFingerSegment
+namespace ofxHT {
+
+class FingerSegment
 {
 	public:
-		ofxFingerSegment(ofPoint _origin);
-		ofxFingerSegment(void);
-		~ofxFingerSegment(void);
+		FingerSegment(ofPoint _origin);
+		FingerSegment(void);
+		~FingerSegment(void);
 
 		void update();
 		void updateWithX();
@@ -29,3 +31,4 @@ class ofxFingerSegment
 		ofMatrix4x4 rotateByX, rotateByZ;
 };
 
+}

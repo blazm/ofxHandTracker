@@ -2,21 +2,23 @@
 
 #include "ofMain.h"
 
-class ofxImageMatcher
+namespace ofxHT {
+
+class ImageMatcher
 {
 	//public:
-	//	ofxImageMatcher(void);
-	//	~ofxImageMatcher(void);
+	//	ImageMatcher(void);
+	//	~ImageMatcher(void);
 
 	public:
-		ofxImageMatcher(void) {
+		ImageMatcher(void) {
 			setup();
 		}
-		ofxImageMatcher(int _w, int _h){
+		ImageMatcher(int _w, int _h){
 			setup(_w, _h);
 		}
 
-		~ofxImageMatcher(void) {};
+		~ImageMatcher(void) {};
     
 		ofImage imagesAbsDiff(ofImage _image1, ofImage _image2) {
 			img1.setFromPixels(_image1.getPixelsRef());
@@ -123,3 +125,4 @@ class ofxImageMatcher
 		ofImage		resultImage;
 };
 
+}

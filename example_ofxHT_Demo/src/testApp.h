@@ -4,8 +4,7 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxHandModel.h"
-#include "ofxHandTracker.h"
+#include "ofxHT.h"
 #include "ofxOpenNI.h"
 #include "ofxOpenCv.h"
 #include "Presentation.h"
@@ -33,13 +32,13 @@ class testApp : public ofBaseApp{
 	
 		void exit(); // to do cleanup on exit
 
-		ofxHandModel h;
+		ofxHT::HandModel h;
 		
 		// for multiple keys to be active at the same time
 		bool activeKeys[256];
 
 #ifdef USE_KINECT
-		ofxHandTracker *tracker;
+		ofxHT::HandTracker *tracker;
 		//ofxHandTracker *tracker2; // if not pointer it causes heap corruption (too much data to be stored on heap i guess)
 #endif
 

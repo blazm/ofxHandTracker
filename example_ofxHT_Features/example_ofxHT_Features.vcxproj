@@ -99,13 +99,12 @@
     <ClCompile Include="..\..\..\addons\ofxOpenCv\src\ofxCvHaarFinder.cpp" />
     <ClCompile Include="..\..\..\addons\ofxOpenCv\src\ofxCvImage.cpp" />
     <ClCompile Include="..\..\..\addons\ofxOpenCv\src\ofxCvShortImage.cpp" />
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxFingerModel.cpp" />
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxFingerParameters.cpp" />
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxFingerSegment.cpp" />
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxHandModel.cpp" />
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxHandTracker.cpp" />
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxThumbModel.cpp" />
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxUtilityTimer.cpp" />
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\FingerModel.cpp" />
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\FingerParameters.cpp" />
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\FingerSegment.cpp" />
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\HandModel.cpp" />
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\HandTracker.cpp" />
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ThumbModel.cpp" />
     <ClCompile Include="..\..\..\addons\ofxOpenNI\src\ofxDepthGenerator.cpp" />
     <ClCompile Include="..\..\..\addons\ofxOpenNI\src\ofxGestureGenerator.cpp" />
     <ClCompile Include="..\..\..\addons\ofxOpenNI\src\ofxHandGenerator.cpp" />
@@ -120,7 +119,8 @@
     <ClCompile Include="src\testApp.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\FixedParameters.h" />
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\TrackerConstants.h" />
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxHT.h" />
     <ClInclude Include="..\..\..\addons\ofxOpenCv\src\ofxCvBlob.h" />
     <ClInclude Include="..\..\..\addons\ofxOpenCv\src\ofxCvColorImage.h" />
     <ClInclude Include="..\..\..\addons\ofxOpenCv\src\ofxCvConstants.h" />
@@ -213,14 +213,13 @@
     <ClInclude Include="..\..\..\addons\ofxOpenCv\libs\opencv\include\opencv2\video\background_segm.hpp" />
     <ClInclude Include="..\..\..\addons\ofxOpenCv\libs\opencv\include\opencv2\video\tracking.hpp" />
     <ClInclude Include="..\..\..\addons\ofxOpenCv\libs\opencv\include\opencv2\video\video.hpp" />
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxFingerModel.h" />
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxFingerParameters.h" />
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxFingerSegment.h" />
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxHandModel.h" />
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxHandTracker.h" />
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxImageMatcher.h" />
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxThumbModel.h" />
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxUtilityTimer.h" />
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\FingerModel.h" />
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\FingerParameters.h" />
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\FingerSegment.h" />
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\HandModel.h" />
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\HandTracker.h" />
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ImageMatcher.h" />
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ThumbModel.h" />
     <ClInclude Include="..\..\..\addons\ofxOpenNI\src\ofxDepthGenerator.h" />
     <ClInclude Include="..\..\..\addons\ofxOpenNI\src\ofxGestureGenerator.h" />
     <ClInclude Include="..\..\..\addons\ofxOpenNI\src\ofxHandGenerator.h" />

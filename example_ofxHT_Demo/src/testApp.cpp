@@ -8,11 +8,7 @@ void testApp::setup(){
 
 	ofSetBackgroundAuto(false); // removes fullscreen flickering (on some PCs)
 	ofBackground(ofColor::white);
-
 	h.getOrigin().set(ofGetWidth()/2, ofGetHeight()/2);
-
-	//h.origin.x = ofGetWidth()/2;
-	//h.origin.y = ofGetHeight()/2;
 
 	//ofSetFullscreen(true);
 	ofSetFrameRate(30);
@@ -40,7 +36,7 @@ void testApp::setup(){
 	oniContext.toggleRegisterViewport();
 	oniContext.toggleMirror();
 
-	tracker = new ofxHandTracker(&userGen, &handGen, &depthGen, 0);
+	tracker = new ofxHT::HandTracker(&userGen, &handGen, &depthGen, 0);
 	//tracker2 = new ofxHandTracker(&userGen, &handGen, &depthGen, 1); // use when code is ready to track and handle multiple hands
 #endif
 }
@@ -184,22 +180,6 @@ void testApp::draw(){
 		std::cerr << "CRITICAL ERR (draw): " << e;
 	}
 	//tracker2->draw();
-#endif
-
-#ifdef	USE_KINECT
-	// if no hands tracked draw demo counting or shifting
-	/*if(handGen.getNumTrackedHands() == 0) {
-		if(ofGetFrameNum()%10 == 0) {
-			int shift = (ofGetFrameNum()/10)%10;
-			int val = 1 << shift; // demo shifting
-
-			ofxFingerParameters p = ofxFingerParameters(val); //(ofGetFrameNum()/10)%32 - counting
-			h.restoreFrom(p);
-		}
-		h.origin = ofPoint(ofGetWidth()/2, ofGetHeight()/2, 0);
-		h.scaling = ofPoint(.45,.45,.45);
-		h.draw();
-	}*/
 #endif
 
 	ofPopMatrix();

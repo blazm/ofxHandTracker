@@ -1,6 +1,8 @@
-#include "ofxFingerSegment.h"
+#include "FingerSegment.h"
 
-ofxFingerSegment::ofxFingerSegment(ofPoint _origin)
+namespace ofxHT {
+
+FingerSegment::FingerSegment(ofPoint _origin)
 {
 	length = 100;
 	angleZ = 0;//-90; //-PI/2;
@@ -18,7 +20,7 @@ ofxFingerSegment::ofxFingerSegment(ofPoint _origin)
 	//rotationMatrix.makeRotationMatrix(angleX * 180/PI, ofVec3f(1, 0, 0), 0, ofVec3f(0,0,0), angleZ * 180/PI, ofVec3f(0, 0, 1));
 }
 
-ofxFingerSegment::ofxFingerSegment(void)
+FingerSegment::FingerSegment(void)
 {
 	length = 100;
 	angleZ = 0;//-90; //-PI/2;
@@ -36,11 +38,11 @@ ofxFingerSegment::ofxFingerSegment(void)
 	direction.z = cos(angleX) * length;*/
 }
 
-ofxFingerSegment::~ofxFingerSegment(void)
+FingerSegment::~FingerSegment(void)
 {
 }
 
-void ofxFingerSegment::update()
+void FingerSegment::update()
 {
 	//direction.x = cos(angleZ) * length;
 	//direction.y = sin(angleZ) * length;
@@ -67,7 +69,7 @@ void ofxFingerSegment::update()
 	direction.z = cos(angleX) * length;*/
 }
 
-void ofxFingerSegment::draw()
+void FingerSegment::draw()
 {
 	ofLine(origin, origin+direction);
 
@@ -81,4 +83,4 @@ void ofxFingerSegment::draw()
 	ofSphere(origin, 7);
 }
 
-
+}

@@ -49,7 +49,7 @@ void testApp::draw(){
 	ofPushStyle();
 	ofPushMatrix();
 	ofSetColor(ofColor::white);
-	h.drawFboProjection(ofPoint(h.getOriginRef().x - IMG_DIM/2, h.getOriginRef().y - IMG_DIM/2));
+	h.drawFboProjection(ofPoint(h.getOriginRef().x - ofxHT::Const::IMG_DIM/2, h.getOriginRef().y - ofxHT::Const::IMG_DIM/2));
 
 	ofPopMatrix();
 	ofPopStyle();

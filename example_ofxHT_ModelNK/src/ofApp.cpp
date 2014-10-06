@@ -16,7 +16,7 @@ void ofApp::setup(){
 	size.addListener(this, &ofApp::sizeChanged);
 
 	string fingerNames[] = {"thumb", "index", "middle", "ring", "pinky"};
-	for (int i=0; i<NUM_FINGERS; i++) {
+	for (int i=0; i<ofxHT::Const::NUM_FINGERS; i++) {
 		gui.add(fingerEnabled[i].set(fingerNames[i], true));
 	}
 	fingerMask = 0;
@@ -28,7 +28,7 @@ void ofApp::setup(){
 
 void ofApp::factorChanged(float & factor) {
 	// TODO: later listener could be avoken for detecting mask changes
-	for (int i=0; i<NUM_FINGERS; i++) {
+	for (int i=0; i<ofxHT::Const::NUM_FINGERS; i++) {
 		if (fingerEnabled[i].get()) fingerMask |= (1 << (i));
 		else						fingerMask &=  ~(1 << i);
 	}

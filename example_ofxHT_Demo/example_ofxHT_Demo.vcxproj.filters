@@ -25,27 +25,6 @@
     <ClCompile Include="..\..\..\addons\ofxOpenCv\src\ofxCvShortImage.cpp">
       <Filter>addons\ofxOpenCv\src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxFingerModel.cpp">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxFingerParameters.cpp">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxFingerSegment.cpp">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxHandModel.cpp">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxHandTracker.cpp">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxThumbModel.cpp">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxUtilityTimer.cpp">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\addons\ofxOpenNI\src\ofxDepthGenerator.cpp">
       <Filter>addons\ofxOpenNI\src</Filter>
     </ClCompile>
@@ -84,6 +63,27 @@
     </ClCompile>
     <ClCompile Include="src\testApp.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\FingerModel.cpp">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\FingerParameters.cpp">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\FingerSegment.cpp">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\HandModel.cpp">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\HandTracker.cpp">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxUtilityTimer.cpp">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ThumbModel.cpp">
+      <Filter>addons\ofxHandTracker\src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -158,9 +158,6 @@
     </Filter>
     <Filter Include="addons\ofxHandTracker\src">
       <UniqueIdentifier>{2539278D-0DBE-B950-3780-D41E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="addons\ofxHandTracker\src\legacy">
-      <UniqueIdentifier>{6745F660-2F9A-7FEF-CE0F-E024}</UniqueIdentifier>
     </Filter>
     <Filter Include="addons\ofxOpenNI">
       <UniqueIdentifier>{6E5D5334-77F3-8D5C-AB36-7872}</UniqueIdentifier>
@@ -446,30 +443,6 @@
     <ClInclude Include="..\..\..\addons\ofxOpenCv\libs\opencv\include\opencv2\video\video.hpp">
       <Filter>addons\ofxOpenCv\libs\opencv\include\opencv2\video</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxFingerModel.h">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxFingerParameters.h">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxFingerSegment.h">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxHandModel.h">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxHandTracker.h">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxImageMatcher.h">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxThumbModel.h">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxUtilityTimer.h">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\addons\ofxOpenNI\src\ofxDepthGenerator.h">
       <Filter>addons\ofxOpenNI\src</Filter>
     </ClInclude>
@@ -515,7 +488,34 @@
     <ClInclude Include="src\testApp.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\FixedParameters.h">
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\FingerModel.h">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\FingerParameters.h">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\FingerSegment.h">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\HandModel.h">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\HandTracker.h">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ImageMatcher.h">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxHT.h">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxUtilityTimer.h">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ThumbModel.h">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\TrackerConstants.h">
       <Filter>addons\ofxHandTracker\src</Filter>
     </ClInclude>
   </ItemGroup>

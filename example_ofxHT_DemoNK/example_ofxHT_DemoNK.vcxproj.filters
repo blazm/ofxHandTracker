@@ -4,29 +4,29 @@
     <ClCompile Include="src\main.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxFingerModel.cpp">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxFingerParameters.cpp">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxFingerSegment.cpp">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxHandModel.cpp">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxThumbModel.cpp">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxUtilityTimer.cpp">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClCompile>
     <ClCompile Include="src\Presentation.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\testApp.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\FingerModel.cpp">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\FingerParameters.cpp">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\FingerSegment.cpp">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\HandModel.cpp">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ofxUtilityTimer.cpp">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\addons\ofxHandTracker\src\ThumbModel.cpp">
+      <Filter>addons\ofxHandTracker\src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -42,39 +42,33 @@
     <Filter Include="addons\ofxHandTracker\src">
       <UniqueIdentifier>{2539278D-0DBE-B950-3780-D41E}</UniqueIdentifier>
     </Filter>
-    <Filter Include="addons\ofxHandTracker\src\legacy">
-      <UniqueIdentifier>{6745F660-2F9A-7FEF-CE0F-E024}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxFingerModel.h">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxFingerParameters.h">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxFingerSegment.h">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxHandModel.h">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxImageMatcher.h">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxThumbModel.h">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxUtilityTimer.h">
-      <Filter>addons\ofxHandTracker\src</Filter>
-    </ClInclude>
     <ClInclude Include="src\Presentation.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\testApp.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\FixedParameters.h">
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\FingerModel.h">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\FingerParameters.h">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\FingerSegment.h">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\HandModel.h">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ofxUtilityTimer.h">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\ThumbModel.h">
+      <Filter>addons\ofxHandTracker\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\addons\ofxHandTracker\src\TrackerConstants.h">
       <Filter>addons\ofxHandTracker\src</Filter>
     </ClInclude>
   </ItemGroup>

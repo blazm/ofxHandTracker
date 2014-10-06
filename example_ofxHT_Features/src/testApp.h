@@ -4,8 +4,7 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxHandModel.h"
-#include "ofxHandTracker.h"
+#include "ofxHT.h"
 #include "ofxOpenNI.h"
 #include "ofxOpenCv.h"
 #include "HUD.h"
@@ -30,20 +29,18 @@ class testApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
-	
-		void exit(); // to do cleanup on exit
+		void exit(); // cleanup on exit
 
-		ofxHandModel h;
+		ofxHT::HandModel h;
 		ofPoint boxPos;
-
 		HUD hud;
 
 		// for multiple keys to be active at the same time
 		bool activeKeys[256];
 
 #ifdef USE_KINECT
-		ofxHandTracker *tracker;
-		ofxHandTracker *tracker2; // if not pointer it causes heap corruption (too much data to be stored on heap i guess)
+		ofxHT::HandTracker *tracker;
+		ofxHT::HandTracker *tracker2; // if not pointer it causes heap corruption (too much data to be stored on heap i guess)
 #endif
 
 #ifdef USE_KINECT

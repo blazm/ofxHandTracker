@@ -1,15 +1,18 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxFingerModel.h"
+#include "FingerModel.h"
 
-class ofxThumbModel :
-	public ofxFingerModel
+namespace ofxHT {
+	using namespace Const;
+
+class ThumbModel :
+	public FingerModel
 {
 public:
-	ofxThumbModel(ofPoint _origin);
-	ofxThumbModel(void);
-	~ofxThumbModel(void);
+	ThumbModel(ofPoint _origin);
+	ThumbModel(void);
+	~ThumbModel(void);
 
 	void	update();
 	void	draw();
@@ -22,3 +25,4 @@ public:
 	float	getAngleZ();
 };
 
+}

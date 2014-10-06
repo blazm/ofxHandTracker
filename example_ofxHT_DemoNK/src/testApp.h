@@ -4,7 +4,7 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxHandModel.h"
+#include "HandModel.h"
 // these are not needed in this example
 //#include "ofxHandTracker.h"
 //#include "ofxOpenNI.h"
@@ -30,7 +30,7 @@ class testApp : public ofBaseApp{
 	
 		void exit(); // cleanup on exit (not needed yet here)
 
-		ofxHandModel h; // for demo of hand model
+		ofxHT::HandModel h; // for demo of hand model
 		Presentation		thesisPresentation;
 
 		// for multiple keys to be active at the same time

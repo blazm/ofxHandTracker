@@ -1,9 +1,10 @@
-#include "ofxThumbModel.h"
+#include "ThumbModel.h"
 
+namespace ofxHT {
 
-ofxThumbModel::ofxThumbModel(ofPoint _origin)
+ThumbModel::ThumbModel(ofPoint _origin)
 {
-	root = ofxFingerSegment(_origin);
+	root = FingerSegment(_origin);
 	
 	// it looks like this fixes problem with thumb initialization (strange big x angle vals)
 	// this init also fixes debug build issues with thumb
@@ -37,10 +38,10 @@ ofxThumbModel::ofxThumbModel(ofPoint _origin)
 	angleDiff = 10; // 1 deg per keypress
 }
 
-ofxThumbModel::ofxThumbModel(void){}
-ofxThumbModel::~ofxThumbModel(void){}
+ThumbModel::ThumbModel(void){}
+ThumbModel::~ThumbModel(void){}
 
-void ofxThumbModel::update()
+void ThumbModel::update()
 {
 	root.update();
 	mid.update();
@@ -51,7 +52,7 @@ void ofxThumbModel::update()
 	fingerTip = top.origin + top.direction;
 }
 
-void ofxThumbModel::draw()
+void ThumbModel::draw()
 {
 	ofSetColor(ofColor::cyan);
 	ofSphere(fingerTip, 10);
@@ -60,7 +61,7 @@ void ofxThumbModel::draw()
 	root.draw();
 }
 
-void ofxThumbModel::keyPressed(int key){
+void ThumbModel::keyPressed(int key){
 
 	// limit values by testing
 	if(key == '-' && getAngleX() < THUMB_MAX_ANGLE_X) { // outer limit
@@ -87,24 +88,26 @@ void ofxThumbModel::keyPressed(int key){
 	}
 }
 
-void ofxThumbModel::setAngleX(float _angle) { // TODO: rename to side angle?
+void ThumbModel::setAngleX(float _angle) { // TODO: rename to side angle?
 	root.angleX = _angle;
 	mid.angleX = 2*_angle;
 	top.angleX = 3*_angle;
 	update();
 }
 
-void ofxThumbModel::setAngleZ(float _angle) { // TODO: rename to forward angle
+void ThumbModel::setAngleZ(float _angle) { // TODO: rename to forward angle
 	root.angleZ = _angle;
 	mid.angleZ = _angle;
 	top.angleZ = _angle;
 	update();
 }
 
-float ofxThumbModel::getAngleX() {
+float ThumbModel::getAngleX() {
 	return root.angleX /*+ root.refAngleX*/;
 }
 
-float ofxThumbModel::getAngleZ() {
+float ThumbModel::getAngleZ() {
 	return root.angleZ /*+ root.refAngleZ*/;
+}
+
 }

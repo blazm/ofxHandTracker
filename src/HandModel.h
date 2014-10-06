@@ -1,19 +1,20 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxFingerModel.h"
-#include "ofxThumbModel.h"
-#include "ofxFingerParameters.h"
+#include "FingerModel.h"
+#include "ThumbModel.h"
+#include "FingerParameters.h"
 
-#include "FixedParameters.h"
+#include "TrackerConstants.h"
 
-//namespace ofxHandTracker {
+namespace ofxHT {
+	using namespace Const;
 
-class ofxHandModel
+class HandModel
 {
 	public:
-		ofxHandModel(void);
-		~ofxHandModel(void);
+		HandModel(void);
+		~HandModel(void);
 
 		void update();
 		void draw();
@@ -30,7 +31,7 @@ class ofxHandModel
 		void			drawProjection(); 
 		void			drawFboProjection(ofPoint _position, ofPoint _palmCenter = ofPoint(IMG_DIM/2, IMG_DIM/2, 0), int _kernelSize = FIXED_KERNEL, bool _draw = true);
 		void			getProjection(ofImage &_target, ofPoint _palmCenter = ofPoint(IMG_DIM/2, IMG_DIM/2, 0), int _kernelSize = FIXED_KERNEL);
-		void			drawFingerProjection(ofxFingerModel f); //helper only
+		void			drawFingerProjection(FingerModel f); //helper only
 
 		void			setScale(float _factor);
 		void			setScale(ofPoint _scale);
@@ -45,15 +46,15 @@ class ofxHandModel
 		ofQuaternion&	getRotationRef();
 		ofQuaternion	getRotation();
 
-		ofxFingerModel*	getFingerRef(int _index) { if (0 <= _index && _index < NUM_FINGERS) return f[_index]; }
-		ofxThumbModel* getThumbRef() { return (ofxThumbModel*)f[0];	}
+		FingerModel*	getFingerRef(int _index) { if (0 <= _index && _index < Const::NUM_FINGERS) return f[_index]; }
+		ThumbModel*		getThumbRef() { return (ThumbModel*)f[0];	}
 
-		void restoreFrom(ofxFingerParameters _localParams, bool _includeAngleX = false);
-		ofxFingerParameters	saveFingerParameters();
+		void restoreFrom(FingerParameters _localParams, bool _includeAngleX = false);
+		FingerParameters	saveFingerParameters();
 		//ofxPalmParameters savePalmParameters();
 
 		// _mask -> masks fingers by bits (1- enabled, 0 - disabled)
-		void			interpolate(ofxFingerParameters _to, short _mask = 31); // interpolates hand params, _mask: 1 - 31 (enables fingers bitwise)
+		void			interpolate(FingerParameters _to, short _mask = 31); // interpolates hand params, _mask: 1 - 31 (enables fingers bitwise)
 		
 		void			open(float _factor = 1.0, short _mask = 31); // opens hand, _factor: 0 - 1, _mask: 1 - 31 (enables fingers bitwise)
 		void			close(float _factor = 1.0, short _mask = 31); // closes hand, _factor: 0 - 1, _mask: 1 - 31 (enables fingers bitwise)
@@ -64,7 +65,7 @@ class ofxHandModel
 	private:
 		void			interpolateParam(float &_desired, float &_prev, float _weight = 0.1f); // internal helper
 
-		ofxFingerModel*			f[NUM_FINGERS]; 
+		FingerModel*	f[NUM_FINGERS]; 
 
 		//ofPoint		  rotation;
 		// TODO: setters/getters (also fix references in other files)
@@ -80,7 +81,7 @@ class ofxHandModel
 
 		// interpolation methods & variables
 		//void			interpolate(ofxFingerParameters _from, ofxFingerParameters _to);
-		ofxFingerParameters desiredParams;
+		FingerParameters desiredParams;
 		
 		// mesh & fbo & shaders (experimental)
 		//off screen drawing fbo - for better model projection generation
@@ -101,4 +102,4 @@ class ofxHandModel
 		ofFloatColor	getPointColor(ofPoint p);
 };
 
-//}
+}

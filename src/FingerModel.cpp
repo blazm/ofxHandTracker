@@ -1,9 +1,10 @@
-#include "ofxFingerModel.h"
+#include "FingerModel.h"
 
+namespace ofxHT {
 
-ofxFingerModel::ofxFingerModel(ofPoint _origin) 
+FingerModel::FingerModel(ofPoint _origin) 
 {
-	root = ofxFingerSegment(_origin);
+	root = FingerSegment(_origin);
 
 	// origin + direction changes
 	mid.origin = root.origin + root.direction;
@@ -33,7 +34,7 @@ ofxFingerModel::ofxFingerModel(ofPoint _origin)
 	angleDiff = 10; // 1 deg per keypress
 }
 
-ofxFingerModel::ofxFingerModel(void)
+FingerModel::FingerModel(void)
 {
 	angleDiff = 10; // 1 deg per keypress
 
@@ -63,9 +64,9 @@ ofxFingerModel::ofxFingerModel(void)
 	top.update();
 }
 
-ofxFingerModel::~ofxFingerModel(void){}
+FingerModel::~FingerModel(void){}
 
-void ofxFingerModel::update(){
+void FingerModel::update(){
 	palm.update();
 	root.update();
 	mid.update();
@@ -81,7 +82,7 @@ void ofxFingerModel::update(){
 	top.angleX = mid.angleX;
 }
 
-void ofxFingerModel::draw()
+void FingerModel::draw()
 {
 	ofSetColor(ofColor::cyan);
 	ofSphere(fingerTip, 10);
@@ -91,7 +92,7 @@ void ofxFingerModel::draw()
 	palm.draw();
 }
 
-void ofxFingerModel::keyPressed(int key){
+void FingerModel::keyPressed(int key){
 
 	if(key == '+' && getAngleZ() < FINGER_MAX_ANGLE_Z) {
 		setAngleZ(getAngleZ() + angleDiff);
@@ -116,44 +117,46 @@ void ofxFingerModel::keyPressed(int key){
 	}*/
 }
 
-void ofxFingerModel::setLength(float rootL, float midL, float topL) {
+void FingerModel::setLength(float rootL, float midL, float topL) {
 	root.length = rootL;
 	mid.length = midL;
 	top.length = topL;
 }
 
-void ofxFingerModel::setTipLength(float _len) {
+void FingerModel::setTipLength(float _len) {
 	setLength(_len * _GOLDEN_RATIO_x2, _len * _GOLDEN_RATIO, _len);
 	palm.length = -_len * _GOLDEN_RATIO_x3 * 1.2;
 }
 
-void ofxFingerModel::setAngleZ(float _angle) {
+void FingerModel::setAngleZ(float _angle) {
 	root.angleZ = _angle;
 	mid.angleZ = 2*_angle;
 	top.angleZ = 3*_angle;
 	update();
 }
 
-float ofxFingerModel::getAngleZ() {
+float FingerModel::getAngleZ() {
 	return root.angleZ;
 }
 
-void ofxFingerModel::setAngleX(float _angle) {
+void FingerModel::setAngleX(float _angle) {
 	root.angleX = _angle;
 	mid.angleX = _angle;
 	top.angleX = _angle;
 	update();
 }
 
-float ofxFingerModel::getAngleX() {
+float FingerModel::getAngleX() {
 	return root.angleX;
 }
 
 /*
-float ofxFingerModel::degToRad(float deg) {
+float FingerModel::degToRad(float deg) {
 	return (deg*PI)/180;
 }
 
-float ofxFingerModel::radToDeg(float rad) {
+float FingerModel::radToDeg(float rad) {
 	return (rad*180)/PI;
 }*/
+
+}

@@ -1,34 +1,35 @@
 #pragma once
 
 //#include "ofMain.h"
-#include "ofxHandModel.h"
+#include "HandModel.h"
 #include "ofxOpenNI.h"
 #include "ofxOpenCv.h"
-#include "ofxImageMatcher.h"
+#include "ImageMatcher.h"
 
-#include "FixedParameters.h"
+#include "TrackerConstants.h"
 
 /* // namespace usage example
 namespace ofxHT {
 	class Tracker;
 }
-
 class ofxHT::Tracker {
 };*/
 
-// tracker for each hand
-class ofxHandTracker
+namespace ofxHT {
+	using namespace Const;
+
+class HandTracker // TODO: trackers for each OpenNI tracked hand
 {
 	public:
-		//ofxHandTracker();
-		ofxHandTracker(ofxUserGenerator *_userGen, ofxHandGenerator *_handGen, ofxDepthGenerator *_depthGen, int _hIndex);
-		//~ofxHandTracker(void);
+		//HandTracker();
+		HandTracker(ofxUserGenerator *_userGen, ofxHandGenerator *_handGen, ofxDepthGenerator *_depthGen, int _hIndex);
+		//~HandTracker(void);
 
 		void update();
 		void draw();
 
 	    // getters 
-		ofxHandModel&	getHandModelRef();
+		HandModel&	getHandModelRef();
 		vector<ofPoint> getActiveFingerTips();
 		int				getNumFingerTips();
 		
@@ -58,7 +59,7 @@ class ofxHandTracker
 			ofPoint pivot; // TODO: need to set it up, before sorting
 
 			bool operator() (ofPoint p1, ofPoint p2) {
-				/*int res = ofxHandTracker::ccw(p1, pivot, p2);
+				/*int res = HandTracker::ccw(p1, pivot, p2);
 				if (res == 0) // if same angle (collinear points), arrange by x coord (left first)
 					res = p1.x - p2.x;
 				return res;*/
@@ -80,7 +81,7 @@ class ofxHandTracker
 		//ofFbo				depthFbo;
 
 		//hand model
-		ofxHandModel		h;
+		HandModel		h;
 		int					hIndex;
 
 		//Images
@@ -177,17 +178,18 @@ class ofxHandTracker
 		// optimum searching methods (currently very basic)
 		void				setParamsFromFingerTips(int _fingerTipsCounter);
 		void				findParamsOptimum(int _params[], int _size);
-		void				findParamsOptimum(ofxFingerParameters _params[], int _size);
-		void				findParamsOptimum(int _paramsZ[], int _sizeZ, ofxFingerParameters _paramsX[], int _sizeX);
+		void				findParamsOptimum(FingerParameters _params[], int _size);
+		void				findParamsOptimum(int _paramsZ[], int _sizeZ, FingerParameters _paramsX[], int _sizeX);
 
 		
-		void				findParamsOptimum(ofxHandModel &_h, 
+		void				findParamsOptimum(HandModel &_h, 
 											  ofxCvGrayscaleImage &_hand, 
 											  ofxCvGrayscaleImage &_model, 
 											  ofxCvGrayscaleImage &_diff, 
 											  short _mask); 
 		// here is place for advanced shader & fbo objects
 		// which will help us realize paralel image comparing on GPU
-		ofxImageMatcher		shaderMatcher;
+		ImageMatcher		shaderMatcher;
 };
 
+}

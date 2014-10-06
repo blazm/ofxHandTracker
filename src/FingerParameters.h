@@ -1,47 +1,17 @@
 #pragma once
 
-// TODO: include safety defined macros in all project files (also define smart way of naming them)
-// UPDATE: #pragma once does the same thing as this macro i suppose
-//#ifndef _Hand_Tracker_Hand_Model_Parameters
-//#define _Hand_Tracker_Hand_Model_Parameters
-
 #include "ofMain.h"
-#include "FixedParameters.h"
 
-//namespace ofxHandTracker { // TODO: add structured namespaces, remove macro defines
-	// left and right thumb swing
-	#define THUMB_MIN_ANGLE_X		 -45//-30 -> less opened
-	#define THUMB_MAX_ANGLE_X	      0//0 
+#include "TrackerConstants.h"
 
-	// front and back thumb swing
-	#define THUMB_MIN_ANGLE_Z		  0 // 0
-	#define THUMB_MAX_ANGLE_Z		  37.5 // 20
-
-	// define other fingers front and back swing limits (actual angle of first segment, value is then propagated to others)
-	#define FINGER_MIN_ANGLE_Z	 0
-	#define FINGER_MAX_ANGLE_Z	90
-
-	// also need to define non-thumb finer x angles -> but they are different for each finger
-	#define FINGER_MIN_ANGLE_X  0  // legacy, remove soon
-	#define FINGER_MAX_ANGLE_X	10 // legacy, remove soon
-
-	#define FINGER_1_MIN_ANGLE_X	-5
-	#define FINGER_2_MIN_ANGLE_X    -1.5
-	#define FINGER_3_MIN_ANGLE_X	 2.5
-	#define FINGER_4_MIN_ANGLE_X	 5
-
-	#define FINGER_1_MAX_ANGLE_X	 25
-	#define FINGER_2_MAX_ANGLE_X	 7.5
-	#define FINGER_3_MAX_ANGLE_X	-12.5
-	#define FINGER_4_MAX_ANGLE_X	-25
-
-//}
+namespace ofxHT { // TODO: add structured namespaces, remove macro defines
+	using namespace Const;
 
 // used to store local finger parameters
-class ofxFingerParameters
+class FingerParameters
 {
 	public:
-		ofxFingerParameters() {
+		FingerParameters() {
 			fx1 = 0;
 			fx2 = fx1;
 			fx3 = fx2;
@@ -58,7 +28,7 @@ class ofxFingerParameters
 			tz = 0;
 		};
 
-		ofxFingerParameters(float _fx1, float _fx2, float _fx3, float _fx4, float _tx){
+		FingerParameters(float _fx1, float _fx2, float _fx3, float _fx4, float _tx){
 			fx1 = _fx1;
 			fx2 = _fx2;
 			fx3 = _fx3;
@@ -76,7 +46,7 @@ class ofxFingerParameters
 			clampParams();
 		};
 
-		ofxFingerParameters(float _fz1, float _fz2, float _fz3, float _fz4, float _tx, float _tz){
+		FingerParameters(float _fz1, float _fz2, float _fz3, float _fz4, float _tx, float _tz){
 			fz1 = _fz1;
 			fz2 = _fz2;
 			fz3 = _fz3;
@@ -94,7 +64,7 @@ class ofxFingerParameters
 			clampParams();
 		};
 
-		ofxFingerParameters(int _fz1, int _fz2, int _fz3, int _fz4, int _tx, int _tz){
+		FingerParameters(int _fz1, int _fz2, int _fz3, int _fz4, int _tx, int _tz){
 			fz1 = _fz1;
 			fz2 = _fz2;
 			fz3 = _fz3;
@@ -111,9 +81,9 @@ class ofxFingerParameters
 
 			clampParams();
 		};
-		//~ofxFingerParameters(void){};
+		//~FingerParameters(void){};
 
-		ofxFingerParameters(int _params) {
+		FingerParameters(int _params) {
 			/*fx1 = 0;
 			fx2 = fx1;
 			fx3 = fx2;
@@ -199,10 +169,10 @@ class ofxFingerParameters
 			return os;
 		} */
 
-		ofxFingerParameters operator+(const ofxFingerParameters& other);
-		ofxFingerParameters operator-(const ofxFingerParameters& other);
-		ofxFingerParameters operator*(const float factor);
-       // ofxFingerParameters& operator=(const ofxFingerParameters& other);
+		FingerParameters operator+(const FingerParameters& other);
+		FingerParameters operator-(const FingerParameters& other);
+		FingerParameters operator*(const float factor);
+       // FingerParameters& operator=(const FingerParameters& other);
 
 		float fz1, fz2, fz3, fz4; 
 		float fx1, fx2, fx3, fx4; // left, right finger rotation params - UNUSED
@@ -249,4 +219,4 @@ public:
 	float ax, ay, az; // euler rotation angles
 };
 
-//#endif
+}

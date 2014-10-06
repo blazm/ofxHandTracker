@@ -1,13 +1,15 @@
-#include "ofxHandTracker.h"
+#include "HandTracker.h"
 #include "ofConstants.h"
 
-/*ofxHandTracker::ofxHandTracker()
+namespace ofxHT {
+
+/*HandTracker::HandTracker()
 {
 	userGen = NULL;
 	handGen = NULL;
 }*/
 
-ofxHandTracker::ofxHandTracker(ofxUserGenerator *_userGen, ofxHandGenerator *_handGen, ofxDepthGenerator *_depthGen, int _hIndex)
+HandTracker::HandTracker(ofxUserGenerator *_userGen, ofxHandGenerator *_handGen, ofxDepthGenerator *_depthGen, int _hIndex)
 {
 	userGen = _userGen;
 	handGen = _handGen;
@@ -69,7 +71,7 @@ ofxHandTracker::ofxHandTracker(ofxUserGenerator *_userGen, ofxHandGenerator *_ha
 	shaderMatcher.setup(IMG_DIM, IMG_DIM);
 }
 
-void ofxHandTracker::fetchHandPointCloud(ofPoint _handTrackedPos) {
+void HandTracker::fetchHandPointCloud(ofPoint _handTrackedPos) {
 	int width = userGen->getWidth();
 	int height = userGen->getHeight();
 
@@ -234,7 +236,7 @@ void ofxHandTracker::fetchHandPointCloud(ofPoint _handTrackedPos) {
 	}
 }
 
-void ofxHandTracker::kMeansClustering(vector<ofPoint> &_cloud, int _iterations, int _numClusters) {
+void HandTracker::kMeansClustering(vector<ofPoint> &_cloud, int _iterations, int _numClusters) {
 	if (_cloud.size() < 2) { // handle situation when _cloud empty
 		return;
 	}
@@ -294,7 +296,7 @@ void ofxHandTracker::kMeansClustering(vector<ofPoint> &_cloud, int _iterations, 
 	// TODO: return results if needed
 }
 
-void ofxHandTracker::drawPointCloud(ofPoint _position, vector<ofPoint> &_cloud, ofColor _color) {
+void HandTracker::drawPointCloud(ofPoint _position, vector<ofPoint> &_cloud, ofColor _color) {
 	
 	ofPushMatrix();
 	ofPushStyle();
@@ -320,12 +322,12 @@ void ofxHandTracker::drawPointCloud(ofPoint _position, vector<ofPoint> &_cloud, 
 	ofPopMatrix();
 }
 
-float ofxHandTracker::distFactor(float zDist) {
+float HandTracker::distFactor(float zDist) {
 	float zz = zDist;
 	return (zz) * 1/30;
 }
 
-void ofxHandTracker::getPalmCenterAndRadius(ofPoint &_palmCenter, float &_palmRadius) {
+void HandTracker::getPalmCenterAndRadius(ofPoint &_palmCenter, float &_palmRadius) {
 	/* PALM CENTER CALCULATION - from: http://blog.candescent.ch/2011/04/center-of-palm-hand-tracking.html
 	1. foreach x-th candidate 
 	2. calculate the smallest distance to any point in the contour
@@ -369,7 +371,7 @@ void ofxHandTracker::getPalmCenterAndRadius(ofPoint &_palmCenter, float &_palmRa
 	_palmCenter.set(minMaxCandidate);
 }
 
-void ofxHandTracker::getCloudBBox(ofPoint &_min, ofPoint &_max, vector<ofPoint> &_cloud) {
+void HandTracker::getCloudBBox(ofPoint &_min, ofPoint &_max, vector<ofPoint> &_cloud) {
 	_min.set(640, 480, MAX_HAND_DEPTH); // TODO: kinect viewport consts?
 	_max.set(0,0,MIN_HAND_DEPTH);
 
@@ -385,7 +387,7 @@ void ofxHandTracker::getCloudBBox(ofPoint &_min, ofPoint &_max, vector<ofPoint> 
 }
 
 // updates tracked hand position if found, else does nothing (uses hand generator and also user skeleton generator)
-bool ofxHandTracker::getTrackedPosition(ofPoint &_trackedPosition) {
+bool HandTracker::getTrackedPosition(ofPoint &_trackedPosition) {
 	bool handDetected = false;
 
 	if(handGen->getNumTrackedHands() > 0) { // else use handGen
@@ -447,7 +449,7 @@ bool ofxHandTracker::getTrackedPosition(ofPoint &_trackedPosition) {
 	depthFbo.end();
 	*/
 
-void ofxHandTracker::update() {
+void HandTracker::update() {
 
 	ofPoint prevActiveHandPos = activeHandPos; // remember previous location of the hand
 
@@ -639,7 +641,7 @@ void ofxHandTracker::update() {
 	}
 }
 
-void ofxHandTracker::analyzeContours(vector<ofPoint> &_activeFingerTips) {
+void HandTracker::analyzeContours(vector<ofPoint> &_activeFingerTips) {
 	realImgCV_previous.setFromPixels(realImgCV.getPixelsRef());
 
 	realImgCV.setFromPixels(realImg.getPixelsRef());
@@ -762,12 +764,12 @@ void ofxHandTracker::analyzeContours(vector<ofPoint> &_activeFingerTips) {
 	}	
 }
 
-bool ofxHandTracker::isFistFormed(int _fingerTipsCounter) {
+bool HandTracker::isFistFormed(int _fingerTipsCounter) {
 	bool fistFormed = false; 
 	if(_fingerTipsCounter == 0) {
 		fistFormed = true;
 		for (int i=0; i<FTIP_HIST_SIZE; i++) {
-			if(fTipHistory[i] != 0) // fTipHistory is currently member of ofxHandTracker
+			if(fTipHistory[i] != 0) // fTipHistory is currently member of HandTracker
 				fistFormed = false;
 		}
 
@@ -784,21 +786,21 @@ bool ofxHandTracker::isFistFormed(int _fingerTipsCounter) {
 	return fistFormed;
 }
 
-void ofxHandTracker::setParamsFromFingerTips(int _fingerTipsCounter) {
+void HandTracker::setParamsFromFingerTips(int _fingerTipsCounter) {
 	// TODO: consider creating set of parameters which define only x angles (lets say 4 different parameter objects)
 	// then for each case in checking for best parameters add one more for loop and each time add x angle param to current param
 	// that way we can check for multiple finger poses (by x angle)
 	// also we should check for which fingers we have to apply angles (not to all, just to these which are straight)
 	// PARTIALLY DONE: distinguishing between fist and aligned fingers position is working
 	const int X_PARAMS_SIZE = 6;
-	ofxFingerParameters xParams[X_PARAMS_SIZE];
+	FingerParameters xParams[X_PARAMS_SIZE];
 
-	xParams[0] = ofxFingerParameters(12, 0, -13, -20, 0); //default hand setup
-	xParams[1] = ofxFingerParameters(9, 0, -8, -14, 0); 
-	xParams[2] = ofxFingerParameters(7, 0, -6, -9, 0);
-	xParams[3] = ofxFingerParameters(4, 0, -4, -4, 0);
-	xParams[4] = ofxFingerParameters(1, 0, -2, 1, 0);
-	xParams[5] = ofxFingerParameters(-3, 0, -1, 5, 0);    // fingers aligned tight by x angle
+	xParams[0] = FingerParameters(12, 0, -13, -20, 0); //default hand setup
+	xParams[1] = FingerParameters(9, 0, -8, -14, 0); 
+	xParams[2] = FingerParameters(7, 0, -6, -9, 0);
+	xParams[3] = FingerParameters(4, 0, -4, -4, 0);
+	xParams[4] = FingerParameters(1, 0, -2, 1, 0);
+	xParams[5] = FingerParameters(-3, 0, -1, 5, 0);    // fingers aligned tight by x angle
 
 	//cout << "prev_curr img diff: " << getImageMatching(realImgCV_previous) << endl;
 	//if (getImageMatching(realImgCV_previous) > 5) // 10?
@@ -809,9 +811,9 @@ void ofxHandTracker::setParamsFromFingerTips(int _fingerTipsCounter) {
 	//if(avgFingers == 0) {
 	//if(fistFormed) {
 		//here check if hand completely closed or just closed fingers
-		/*ofxFingerParameters zeroTips[2];
-		zeroTips[0] = ofxFingerParameters(31) + ofxFingerParameters(1, 0, -1, -2, -30); // just fingers
-		zeroTips[1] = ofxFingerParameters(0);				// fist formed
+		/*FingerParameters zeroTips[2];
+		zeroTips[0] = FingerParameters(31) + FingerParameters(1, 0, -1, -2, -30); // just fingers
+		zeroTips[1] = FingerParameters(0);				// fist formed
 		findParamsOptimum(zeroTips, 2);
 		*/
 		
@@ -819,18 +821,18 @@ void ofxHandTracker::setParamsFromFingerTips(int _fingerTipsCounter) {
 	}
 	else if (_fingerTipsCounter >= 5) {
 	//else if (avgFingers >= 5) {
-		/*ofxFingerParameters p = ofxFingerParameters(31);
+		/*FingerParameters p = FingerParameters(31);
 	//	p = p + xParams[0];
 
 		//const int X_PARAMS_5_SIZE = 6;
-		//ofxFingerParameters xParams5[X_PARAMS_5_SIZE];
+		//FingerParameters xParams5[X_PARAMS_5_SIZE];
 
-		xParams[0] = ofxFingerParameters(11, 0, -10, -17, 0); //default hand setup
-		xParams[1] = ofxFingerParameters(9, 0, -8, -14, -5); 
-		xParams[2] = ofxFingerParameters(7, 0, -6, -9, -10);
-		xParams[3] = ofxFingerParameters(4, 0, -4, -4, -15);
-		xParams[4] = ofxFingerParameters(1, 0, -2, 1, -20);
-		xParams[5] = ofxFingerParameters(0, 0, 0, 2, -25);    // fingers aligned tight by x angle
+		xParams[0] = FingerParameters(11, 0, -10, -17, 0); //default hand setup
+		xParams[1] = FingerParameters(9, 0, -8, -14, -5); 
+		xParams[2] = FingerParameters(7, 0, -6, -9, -10);
+		xParams[3] = FingerParameters(4, 0, -4, -4, -15);
+		xParams[4] = FingerParameters(1, 0, -2, 1, -20);
+		xParams[5] = FingerParameters(0, 0, 0, 2, -25);    // fingers aligned tight by x angle
 		
 		int params[] = {31};
 		int size = 1;
@@ -877,7 +879,7 @@ void ofxHandTracker::setParamsFromFingerTips(int _fingerTipsCounter) {
 	}
 }
 
-float ofxHandTracker::angleOfVectors(ofPoint _downVector, ofPoint _rotVector, bool _absolute) {
+float HandTracker::angleOfVectors(ofPoint _downVector, ofPoint _rotVector, bool _absolute) {
 	_downVector.normalize();
 	_rotVector.normalize();
 
@@ -894,7 +896,7 @@ float ofxHandTracker::angleOfVectors(ofPoint _downVector, ofPoint _rotVector, bo
 	return angle;
 }
 
-void ofxHandTracker::draw() {
+void HandTracker::draw() {
 
 	int userID = 0;
 
@@ -973,29 +975,27 @@ void ofxHandTracker::draw() {
 	*/
 	// draw real hand skeleton 
 	generateRegionSkeleton(realImgCV, handSkeleton);
-	handSkeleton.draw(600, 480, 200, 200);
-	ofDrawBitmapString("CV Region Skeleton:", 600, 460);
+	//handSkeleton.draw(600, 480, 200, 200);
+	//ofDrawBitmapString("CV Region Skeleton:", 600, 460);
 
 	ofDrawBitmapString("CV Skeleton Blobs:", 800, 460);
 	drawRegionSkeletons(handSkeleton, ofPoint(800, 480));
 
-	/* 
 	// TODO: improve circular sampling and generate skeleton graph?
-	vector<ofVec2f> nodes;
-	generateCircles(nodes, handSkeleton, palmCenter, 90, 6);
+	vector<ofVec2f> nodes; // TODO: this should be vector of vectors of ofVec2f (each circle in its own vector -> easier to construct graph from center node)
+	generateCircles(nodes, handSkeleton, palmCenter, 70, 15);
 	handSkeleton.draw(600, 480, 200, 200);
 	ofDrawBitmapString("CV Region Skeleton:", 600, 460);
 
 	ofPushMatrix();
 	ofTranslate(600, 680);
-	ofSetColor(ofColor::yellow);
+	//ofSetColor(ofColor::yellow);
 	for (int i=0; i<nodes.size(); i++) {
 		ofVec2f &p = nodes.at(i);
-		ofRect(p - ofPoint(1,1), 2, 2);
+		ofRect(p, 1, 1);
 	} 
 	ofPopMatrix();
-	ofDrawBitmapString("Circle Nodes:", 600, 640);
-	*/
+	ofDrawBitmapString("Circular Samples:", 600, 640);
 
 	// draw model skeleton 
 	generateRegionSkeleton(modelImgCV, modelSkeleton);
@@ -1093,7 +1093,7 @@ void ofxHandTracker::draw() {
 	}
 }
 
-void ofxHandTracker::filterMedian(ofxCvGrayscaleImage *i, int kernelSize) {
+void HandTracker::filterMedian(ofxCvGrayscaleImage *i, int kernelSize) {
 	if (kernelSize <= 2) kernelSize = 3;
 	if (kernelSize % 2 == 0) kernelSize--;
 	
@@ -1113,7 +1113,7 @@ void ofxHandTracker::filterMedian(ofxCvGrayscaleImage *i, int kernelSize) {
 	i->dilate();*/
 }
 
-void ofxHandTracker::filterMedian(ofImage *i, int kernelSize) {
+void HandTracker::filterMedian(ofImage *i, int kernelSize) {
 	if (kernelSize <= 2) kernelSize = 3;
 	if (kernelSize % 2 == 0) kernelSize--;
 
@@ -1131,7 +1131,7 @@ void ofxHandTracker::filterMedian(ofImage *i, int kernelSize) {
 	i->setFromPixels(imgCV.getPixelsRef());
 }
 
-void ofxHandTracker::filterGauss(ofxCvGrayscaleImage *i, int kernelSize) {
+void HandTracker::filterGauss(ofxCvGrayscaleImage *i, int kernelSize) {
 	if (kernelSize <= 2) kernelSize = 3;
 	if (kernelSize % 2 == 0) kernelSize--;
 	
@@ -1217,7 +1217,7 @@ void thinning(cv::Mat& im)
 /*
 	src: http://felix.abecassis.me/2011/09/opencv-morphological-skeleton/
 */
-void ofxHandTracker::generateRegionSkeleton(ofxCvGrayscaleImage &_img, ofxCvGrayscaleImage &_result) {
+void HandTracker::generateRegionSkeleton(ofxCvGrayscaleImage &_img, ofxCvGrayscaleImage &_result) {
 
 	cv::Mat img = cv::Mat(_img.height, _img.width, CV_8UC1, _img.getPixels(), 0);
 	cv::threshold(img, img, 16, 255, cv::THRESH_BINARY);
@@ -1263,7 +1263,7 @@ void ofxHandTracker::generateRegionSkeleton(ofxCvGrayscaleImage &_img, ofxCvGray
 	filterMedian(&_result, 3);
 }
 
-void ofxHandTracker::generateCircles(vector<ofVec2f> &_nodes, ofxCvGrayscaleImage &_img, ofPoint _center, int _circleResolution, int _numCircles) {
+void HandTracker::generateCircles(vector<ofVec2f> &_nodes, ofxCvGrayscaleImage &_img, ofPoint _center, int _circleResolution, int _numCircles) {
 
 	ofPixels &pix = _img.getPixelsRef();
 
@@ -1279,14 +1279,14 @@ void ofxHandTracker::generateCircles(vector<ofVec2f> &_nodes, ofxCvGrayscaleImag
 
 	for (int i=_numCircles-1; i >= 0; i--) {
 		for(int j=0; j<circleResolution; j++) {
-			int x = _center.x + radiuses[i] * cosf(angDelta * j); 
-			int y = _center.y + radiuses[i] * sinf(angDelta * j); 
+			int x = _center.x + radiuses[i] * cosf(((float)(i)/(float)(_numCircles))*(angDelta) + angDelta * j); 
+			int y = _center.y + radiuses[i] * sinf(((float)(i)/(float)(_numCircles))*(angDelta) + angDelta * j); 
 
 			if (pix.getColor(x, y).getBrightness() > 10) {
 				_nodes.push_back(ofVec2f(x,y));
 			}
 
-			pix.setColor(x, y, ofColor(128));
+			//pix.setColor(x, y, ofColor(128));
 		}
 
 		if (i > 0) circleResolution = _circleResolution*((float)(radiuses[i-1]*radiuses[i-1]) / (float)(radiuses[i]*radiuses[i]));
@@ -1298,7 +1298,7 @@ void ofxHandTracker::generateCircles(vector<ofVec2f> &_nodes, ofxCvGrayscaleImag
 	_img.updateTexture();
 }
 
-void ofxHandTracker::drawRegionSkeletons(ofxCvGrayscaleImage &_img, ofPoint _position) {
+void HandTracker::drawRegionSkeletons(ofxCvGrayscaleImage &_img, ofPoint _position) {
 	ofxCvContourFinder	contourFinder;
 	contourFinder.findContours(_img, _img.width*_img.height*0.001, _img.width*_img.height, 6, false, false); // this finds blobs
 	if(contourFinder.blobs.size() > 0) {
@@ -1320,7 +1320,7 @@ void ofxHandTracker::drawRegionSkeletons(ofxCvGrayscaleImage &_img, ofPoint _pos
 }
 
 // finds lines on using CV probability Hough line transform
-void ofxHandTracker::findLines(ofxCvGrayscaleImage &_img, vector<ofVec4f> &_lines) {
+void HandTracker::findLines(ofxCvGrayscaleImage &_img, vector<ofVec4f> &_lines) {
 	cv::Mat img = cv::Mat(_img.height, _img.width, CV_8UC1, _img.getPixels(), 0);
 //	cv::Canny(img, img, 50, 200, 3);
 
@@ -1356,7 +1356,7 @@ void ofxHandTracker::findLines(ofxCvGrayscaleImage &_img, vector<ofVec4f> &_line
 	  }
 }
 
-void ofxHandTracker::filterLines(vector<ofVec4f> &_lines, ofPoint _position) {
+void HandTracker::filterLines(vector<ofVec4f> &_lines, ofPoint _position) {
 
 	// TODO: not useful yet, find better way to join / average line positions
 	vector<vector<ofVec4f>> groups;
@@ -1425,7 +1425,7 @@ void ofxHandTracker::filterLines(vector<ofVec4f> &_lines, ofPoint _position) {
 }
 
 // horizontal and vertical region projections of tiny image
-void ofxHandTracker::drawSideProjections(ofxCvGrayscaleImage &_tiny, ofPoint _position, int _size) {
+void HandTracker::drawSideProjections(ofxCvGrayscaleImage &_tiny, ofPoint _position, int _size) {
 
 	// heights
 	for(int i=0; i<_tiny.width; i++) {
@@ -1448,7 +1448,7 @@ IplImage* img_resize(IplImage* src_img, int new_width,int new_height)
     return des_img;
 } 
 
-void ofxHandTracker::generateTinyImage(ofxCvGrayscaleImage &_img, ofxCvGrayscaleImage &_result, int _size) {
+void HandTracker::generateTinyImage(ofxCvGrayscaleImage &_img, ofxCvGrayscaleImage &_result, int _size) {
 	cv::Mat img = cv::Mat(_img.height, _img.width, CV_8UC1, _img.getPixels(), 0);
 	IplImage *iplImg = new IplImage(img);
 	IplImage *resized = img_resize(iplImg, _size, _size);
@@ -1456,7 +1456,7 @@ void ofxHandTracker::generateTinyImage(ofxCvGrayscaleImage &_img, ofxCvGrayscale
 	delete iplImg; // delete temp image
 }
 
-float ofxHandTracker::getCircularity(const vector<ofPoint> &_edgePoints, const vector<ofPoint> &_areaPoints) {
+float HandTracker::getCircularity(const vector<ofPoint> &_edgePoints, const vector<ofPoint> &_areaPoints) {
 	// returns 4PI * A(R) / P(R)**2
 	if (_edgePoints.size() == 0 || _areaPoints.size() == 0)
 		return -1.0; // return invalid result
@@ -1472,11 +1472,11 @@ float ofxHandTracker::getCircularity(const vector<ofPoint> &_edgePoints, const v
 # gives the signed area of the triangle formed by p1, p2 and p3.
 function ccw(p1, p2, p3):
     return (p2.x - p1.x)*(p3.y - p1.y) - (p2.y - p1.y)*(p3.x - p1.x)*/
-int ofxHandTracker::ccw(ofPoint p1, ofPoint p2, ofPoint p3) {
+int HandTracker::ccw(ofPoint p1, ofPoint p2, ofPoint p3) {
 	return (p2.x - p1.x)*(p3.y - p1.y) - (p2.y - p1.y)*(p3.x - p1.x);
 }
 
-ofPoint& ofxHandTracker::getPivotPoint(vector<ofPoint> &_edgePoints) {
+ofPoint& HandTracker::getPivotPoint(vector<ofPoint> &_edgePoints) {
 
 	if (_edgePoints.size() == 0) return ofPoint();
 
@@ -1488,7 +1488,7 @@ ofPoint& ofxHandTracker::getPivotPoint(vector<ofPoint> &_edgePoints) {
 	return pivot;
 }
 
-void ofxHandTracker::sortEdgePoints(vector<ofPoint> &_edgePoints) {
+void HandTracker::sortEdgePoints(vector<ofPoint> &_edgePoints) {
 
 	ofPointComparator comparator;
 	comparator.pivot.set(getPivotPoint(_edgePoints));
@@ -1497,7 +1497,7 @@ void ofxHandTracker::sortEdgePoints(vector<ofPoint> &_edgePoints) {
 }
 
 // must be sorted before calling this simplification
-void ofxHandTracker::simplifyByRadDist( const vector<ofPoint>& _contourIn, vector<ofPoint>& _contourOut, float _threshDist) {
+void HandTracker::simplifyByRadDist( const vector<ofPoint>& _contourIn, vector<ofPoint>& _contourOut, float _threshDist) {
 	
 	if (_contourIn.size() == 0) return;
 
@@ -1515,7 +1515,7 @@ void ofxHandTracker::simplifyByRadDist( const vector<ofPoint>& _contourIn, vecto
 
 }
 
-void ofxHandTracker::simplifyDP_openCV ( const vector<ofPoint>& contourIn, vector<ofPoint>& contourOut, float tolerance ) {  
+void HandTracker::simplifyDP_openCV ( const vector<ofPoint>& contourIn, vector<ofPoint>& contourOut, float tolerance ) {  
 	//-- copy points.  
 
 	int numOfPoints;  
@@ -1586,7 +1586,7 @@ void ofxHandTracker::simplifyDP_openCV ( const vector<ofPoint>& contourIn, vecto
 	delete[] cvpoints;  
 }  
 
-void ofxHandTracker::drawContours(ofPoint _position) {
+void HandTracker::drawContours(ofPoint _position) {
 	// just drawing part of contour analysis
 	if(realImgCvContour.blobs.size() > 0) {
 	//if(realImgCvContour.nBlobs > 0) {
@@ -1700,7 +1700,7 @@ void ofxHandTracker::drawContours(ofPoint _position) {
 	}
 }
 
-float ofxHandTracker::getHandDepth(float _rawZ, bool _normalized, float _minZ, float _maxZ) {
+float HandTracker::getHandDepth(float _rawZ, bool _normalized, float _minZ, float _maxZ) {
 	float raw = _rawZ;
 
 	if (_normalized) {		
@@ -1712,12 +1712,12 @@ float ofxHandTracker::getHandDepth(float _rawZ, bool _normalized, float _minZ, f
 	return raw;
 }
 
-void ofxHandTracker::findParamsOptimum(ofxHandModel &_h, 
+void HandTracker::findParamsOptimum(HandModel &_h, 
 									   ofxCvGrayscaleImage &_hand, 
 									   ofxCvGrayscaleImage &_model, 
 									   ofxCvGrayscaleImage &_diff, 
 									   short _mask) {
-	ofxFingerParameters bestParams = _h.saveFingerParameters();
+	FingerParameters bestParams = _h.saveFingerParameters();
 	generateModelProjection();
 	float			bestMatching = getImageMatchingV2(_hand, _model, _diff);
 	//float			bestMatching = IMG_DIM*IMG_DIM;
@@ -1726,7 +1726,7 @@ void ofxHandTracker::findParamsOptimum(ofxHandModel &_h,
 		//for(float j=0.1; j<1.0; j+=0.1) {
 			_h.spread(i, _mask);
 			_h.open(1.0, _mask);
-			ofxFingerParameters curParams = _h.saveFingerParameters();
+			FingerParameters curParams = _h.saveFingerParameters();
 			//h.restoreFrom(curParams);
 
 			//tinyModelImg.set(0);
@@ -1750,12 +1750,12 @@ void ofxHandTracker::findParamsOptimum(ofxHandModel &_h,
 	_h.restoreFrom(bestParams);
 }
 
-void ofxHandTracker::findParamsOptimum(int _params[], int _size) {
-	ofxFingerParameters bestParams = ofxFingerParameters(0);
+void HandTracker::findParamsOptimum(int _params[], int _size) {
+	FingerParameters bestParams = FingerParameters(0);
 	float			bestMatching = 0;
 	//float			bestMatching = IMG_DIM*IMG_DIM;
 	for(int i=0; i<_size; i++) {
-		ofxFingerParameters curParams = ofxFingerParameters(_params[i]);
+		FingerParameters curParams = FingerParameters(_params[i]);
 		h.restoreFrom(curParams);
 
 		tinyModelImg.set(0);
@@ -1782,12 +1782,12 @@ void ofxHandTracker::findParamsOptimum(int _params[], int _size) {
 	h.restoreFrom(bestParams);
 }
 
-void ofxHandTracker::findParamsOptimum(ofxFingerParameters _params[], int _size) {
-	ofxFingerParameters bestParams = ofxFingerParameters(0);
+void HandTracker::findParamsOptimum(FingerParameters _params[], int _size) {
+	FingerParameters bestParams = FingerParameters(0);
 	float			bestMatching = 0;
 	//float			bestMatching = IMG_DIM*IMG_DIM;
 	for(int i=0; i<_size; i++) {
-		ofxFingerParameters curParams = _params[i];
+		FingerParameters curParams = _params[i];
 		h.restoreFrom(curParams);
 
 		tinyModelImg.set(0);
@@ -1813,14 +1813,14 @@ void ofxHandTracker::findParamsOptimum(ofxFingerParameters _params[], int _size)
 	h.restoreFrom(bestParams);
 }
 
-void ofxHandTracker::findParamsOptimum(int _paramsZ[], int _sizeZ, ofxFingerParameters _paramsX[], int _sizeX) {
-	ofxFingerParameters bestParams = ofxFingerParameters(0);
+void HandTracker::findParamsOptimum(int _paramsZ[], int _sizeZ, FingerParameters _paramsX[], int _sizeX) {
+	FingerParameters bestParams = FingerParameters(0);
 	float			bestMatching = 0;
 	//float			bestMatching = IMG_DIM*IMG_DIM;
 	for(int i=0; i<_sizeZ; i++) {
-		ofxFingerParameters curParams = ofxFingerParameters(_paramsZ[i]);
+		FingerParameters curParams = FingerParameters(_paramsZ[i]);
 		for(int j=0; j<_sizeX; j++) {
-			ofxFingerParameters merged = curParams + _paramsX[j];
+			FingerParameters merged = curParams + _paramsX[j];
 
 			h.restoreFrom(merged, true);
 
@@ -1850,7 +1850,7 @@ void ofxHandTracker::findParamsOptimum(int _paramsZ[], int _sizeZ, ofxFingerPara
 	h.restoreFrom(bestParams, true);
 }
 
-/*ofxHandTracker::~ofxHandTracker(void)
+/*HandTracker::~HandTracker(void)
 {
 	//free(userGen);
 	//free(handGen);
@@ -1860,14 +1860,14 @@ void ofxHandTracker::findParamsOptimum(int _paramsZ[], int _sizeZ, ofxFingerPara
 
 
 //------------------------- helper methods -------------------------------------
-void ofxHandTracker::generateModelProjection() { // TODO: pass model img by reference?
+void HandTracker::generateModelProjection() { // TODO: pass model img by reference?
 	palmCenter.z = 0;
 	h.getProjection(modelImg, palmCenter);
 	modelImg.setImageType(OF_IMAGE_GRAYSCALE);
 	modelImgCV.setFromPixels(modelImg);
 }
 
-float ofxHandTracker::getImageMatchingV2(ofxCvGrayscaleImage &realImage, 
+float HandTracker::getImageMatchingV2(ofxCvGrayscaleImage &realImage, 
 										ofxCvGrayscaleImage &modelImage,  
 										ofxCvGrayscaleImage &differenceImage) {
 
@@ -1886,7 +1886,7 @@ float ofxHandTracker::getImageMatchingV2(ofxCvGrayscaleImage &realImage,
 	return (float)diffCount / (float)realCount;
 }
 
-float ofxHandTracker::getImageMatching(ofxCvGrayscaleImage &realImage, 
+float HandTracker::getImageMatching(ofxCvGrayscaleImage &realImage, 
 									ofxCvGrayscaleImage &modelImage,  
 									ofxCvGrayscaleImage &differenceImage) {
     
@@ -1917,7 +1917,7 @@ float ofxHandTracker::getImageMatching(ofxCvGrayscaleImage &realImage,
 	return matching;
 }
 
-float ofxHandTracker::getImageMatching(ofxCvGrayscaleImage &differenceImage) {
+float HandTracker::getImageMatching(ofxCvGrayscaleImage &differenceImage) {
 
 	unsigned char *diff = differenceImage.getPixels();
 
@@ -1936,7 +1936,7 @@ float ofxHandTracker::getImageMatching(ofxCvGrayscaleImage &differenceImage) {
 }
 
 
-float ofxHandTracker::getImageMatching(ofImage &realImage,   
+float HandTracker::getImageMatching(ofImage &realImage,   
 									ofImage &diffImage) {
 					
 	ofPixels realPixels = realImage.getPixelsRef();
@@ -1961,7 +1961,7 @@ float ofxHandTracker::getImageMatching(ofImage &realImage,
 	return matching;
 }
 /*
-float ofxHandTracker::getImageMatching(ofxCvGrayscaleImage &realImage,   
+float HandTracker::getImageMatching(ofxCvGrayscaleImage &realImage,   
 									ofxCvGrayscaleImage &diffImage) {
 					
 	ofPixels realPixels = realImage.getPixelsRef();
@@ -1986,7 +1986,7 @@ float ofxHandTracker::getImageMatching(ofxCvGrayscaleImage &realImage,
 	return matching;
 }*/
 
-ofPoint ofxHandTracker::getCentroid(vector<ofPoint> &points){
+ofPoint HandTracker::getCentroid(vector<ofPoint> &points){
 		
 	ofPoint centroid;
 	for(std::vector<ofPoint>::iterator it = points.begin(); it != points.end(); ++it) {
@@ -1998,7 +1998,7 @@ ofPoint ofxHandTracker::getCentroid(vector<ofPoint> &points){
 }
 
 //Bitmap/Bresenham's line algorithm - source: http://rosettacode.org/wiki/Bitmap/Bresenham's_line_algorithm#C
-/*void ofxHandTracker::drawLine(ofImage *img, int x0, int y0, int z0, int x1, int y1, int z1) {
+/*void HandTracker::drawLine(ofImage *img, int x0, int y0, int z0, int x1, int y1, int z1) {
 
 	z0 += 120;
 	z1 += 120;
@@ -2040,12 +2040,12 @@ ofPoint ofxHandTracker::getCentroid(vector<ofPoint> &points){
 }*/
 
 // section with methods which provide useful data from tracker
-vector<ofPoint> ofxHandTracker::getActiveFingerTips() {	return activeFingerTips; }
-ofxHandModel& ofxHandTracker::getHandModelRef() { return h; }
-int	ofxHandTracker::getNumFingerTips() { return fingerTipsCounter; }
+vector<ofPoint> HandTracker::getActiveFingerTips() {	return activeFingerTips; }
+HandModel& HandTracker::getHandModelRef() { return h; }
+int	HandTracker::getNumFingerTips() { return fingerTipsCounter; }
 
 /*
-void ofxHandTracker::drawLine(ofImage *img, int x1, int y1, int z1, int x2, int y2, int z2)
+void HandTracker::drawLine(ofImage *img, int x1, int y1, int z1, int x2, int y2, int z2)
 {
 	z1 += 120;
 	z2 += 120;
@@ -2096,3 +2096,5 @@ void ofxHandTracker::drawLine(ofImage *img, int x1, int y1, int z1, int x2, int 
 	        }
 	}
 }*/
+
+}

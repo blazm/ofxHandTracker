@@ -2,7 +2,9 @@
 
 #include "ofMain.h"
 
-#include "ofxHandModel.h"
+#include "HandModel.h"
+#include "TrackerConstants.h"
+
 #include "ofxGui.h"
 
 class ofApp : public ofBaseApp{
@@ -25,7 +27,7 @@ class ofApp : public ofBaseApp{
 		void factorChanged(float & factor); // gui event for factor
 		void sizeChanged(float & _factor);
 
-		ofxHandModel		hand;
+		ofxHT::HandModel	hand;
 
 		ofxPanel			gui;
 		ofParameter<float>	closeFactor;
@@ -35,5 +37,5 @@ class ofApp : public ofBaseApp{
 		ofParameter<string> fps;
 		
 		short fingerMask;
-		ofParameter<bool>   fingerEnabled[NUM_FINGERS];
+		ofParameter<bool>   fingerEnabled[ofxHT::Const::NUM_FINGERS];
 };

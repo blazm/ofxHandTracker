@@ -22,10 +22,10 @@ Structure
 --------------
 Addon is wrapped into ofxHT namespace. Include all components using ofxHT.h.
 
-ofxHT::HandTracker <- Tracker component
-ofxHT::HandModel <- Model component
-ofxHT::Const:: <- constants
-...
+- ofxHT::HandTracker - Tracker component
+- ofxHT::HandModel - Model component
+- ofxHT::Const:: - constants
+- ...
 
 License
 --------------
